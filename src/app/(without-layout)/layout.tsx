@@ -1,0 +1,9 @@
+export default function Layout({ children }: { children: React.ReactNode }) {
+    return (
+        <html lang="ja">
+            <body>
+                <div>{children}</div>
+            </body>
+        </html>
+    )
+}

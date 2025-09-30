@@ -1,0 +1,29 @@
+{
+    "name": "eiko-direct-mock-server",
+    "version": "1.0.0",
+    "description": "Mock server for Eiko Direct",
+    "main": "dist/server.js",
+    "scripts": {
+        "build": "tsc",
+        "dev": "nodemon --exec ts-node src/server.ts",
+        "start": "npm run build && node dist/server.js",
+        "clean": "rm -rf dist"
+    },
+    "dependencies": {
+        "cors": "^2.8.5",
+        "express": "^5.1.0"
+    },
+    "devDependencies": {
+        "@faker-js/faker": "^9.9.0",
+        "@types/cors": "^2.8.19",
+        "@types/express": "^5.0.3",
+        "@types/node": "^20",
+        "@typescript-eslint/eslint-plugin": "^8.44.0",
+        "@typescript-eslint/parser": "^8.44.0",
+        "eslint": "^9.35.0",
+        "eslint-plugin-unused-imports": "^4.2.0",
+        "nodemon": "^3.1.10",
+        "ts-node": "^10.9.2",
+        "typescript": "^5"
+    }
+}

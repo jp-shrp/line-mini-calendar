@@ -1,0 +1,52 @@
+# Prettierがフォーマットしないファイルとディレクトリを指定
+
+# Next.jsのデフォルトの出力ディレクトリ
+.next
+out
+
+# ビルド成果物
+build
+
+# キャッシュディレクトリ
+.cache
+
+# node_modules (通常はフォーマットする必要がない)
+node_modules
+**/node_modules/**
+
+# yarnのキャッシュディレクトリ
+.yarn
+
+# pnpmのストアディレクトリ
+node_modules/.pnpm
+
+# ロックファイル (フォーマットすると差分が大きくなる可能性がある)
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# 環境変数ファイル (機密情報を含む場合があるため)
+.env
+.env.*
+
+# ログファイル
+*.log
+
+# 一時ファイルや自動生成されたファイル
+tmp
+temp
+**/generated/**
+**/dist/**
+**/build/**
+
+# 特定の拡張子のファイル (例: 古い形式のJavaScriptファイルなど)
+*.js.legacy
+
+# 個別のファイルやディレクトリを指定する場合
+# specific-file.js
+# specific-directory/
+
+# Git管理から除外されているファイル (通常はフォーマットする必要もない)
+.gitignore
+
+.serena/**
