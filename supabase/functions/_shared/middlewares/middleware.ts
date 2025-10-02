@@ -50,7 +50,7 @@ export function createSupabaseClient(req: Request) {
  */
 export const authMiddleware: MiddlewareHandler = async (
     c: Context,
-    next: Next,
+    next: Next
 ) => {
     try {
         // ガード句: Supabaseクライアント作成
@@ -95,7 +95,7 @@ export const authMiddleware: MiddlewareHandler = async (
                 code: 'INTERNAL_SERVER_ERROR',
                 status: 500,
             },
-            500 as const,
+            500 as const
         )
     }
 }
@@ -106,7 +106,7 @@ export const authMiddleware: MiddlewareHandler = async (
  */
 export const errorMiddleware: MiddlewareHandler = async (
     c: Context,
-    next: Next,
+    next: Next
 ) => {
     try {
         await next()
@@ -136,7 +136,7 @@ export const errorMiddleware: MiddlewareHandler = async (
                         message: issue.message,
                     })),
                 },
-                422 as const,
+                422 as const
             )
         }
 
@@ -149,7 +149,7 @@ export const errorMiddleware: MiddlewareHandler = async (
                 code: 'INTERNAL_SERVER_ERROR',
                 status: 500,
             },
-            500 as const,
+            500 as const
         )
     }
 }
@@ -245,7 +245,7 @@ export const createApiError = (
     customMessage?: string,
     customTitle?: string,
     details?: any,
-    cause?: unknown,
+    cause?: unknown
 ): ApiError => {
     const { title, message } = getErrorMessage(code, customMessage, customTitle)
 
@@ -277,12 +277,12 @@ export const createValidationError = (details?: any, customMessage?: string) =>
         400,
         customMessage,
         undefined,
-        details,
+        details
     )
 
 export const createInternalServerError = (
     customMessage?: string,
-    cause?: unknown,
+    cause?: unknown
 ) =>
     createApiError(
         ERROR_CODES.INTERNAL_SERVER_ERROR,
@@ -290,7 +290,7 @@ export const createInternalServerError = (
         customMessage,
         undefined,
         undefined,
-        cause,
+        cause
     )
 
 /**
@@ -302,7 +302,7 @@ export const createInternalServerError = (
  * @returns ラップされたハンドラー関数
  */
 export const apiHandler = <T>(
-    handler: (c: Context) => Promise<T | SuccessResponse>,
+    handler: (c: Context) => Promise<T | SuccessResponse>
 ) => {
     return async (c: Context): Promise<Response> => {
         try {
@@ -320,11 +320,11 @@ export const apiHandler = <T>(
             console.error('Error type:', error?.constructor?.name || 'Unknown')
             console.error(
                 'Error message:',
-                error instanceof Error ? error.message : 'No message',
+                error instanceof Error ? error.message : 'No message'
             )
             console.error(
                 'Error stack:',
-                error instanceof Error ? error.stack : 'No stack trace',
+                error instanceof Error ? error.stack : 'No stack trace'
             )
             console.error('Full error object:', error)
             console.error('Request URL:', c.req.url)
@@ -335,7 +335,7 @@ export const apiHandler = <T>(
             if (error instanceof ZodError) {
                 console.error(
                     'Zod validation error details:',
-                    JSON.stringify(error.errors, null, 2),
+                    JSON.stringify(error.errors, null, 2)
                 )
                 const response = {
                     title: 'バリデーションエラー',
@@ -362,19 +362,19 @@ export const apiHandler = <T>(
                     console.error('=== Error Cause Details ===')
                     console.error(
                         'Cause type:',
-                        error.cause?.constructor?.name || 'Unknown',
+                        error.cause?.constructor?.name || 'Unknown'
                     )
                     console.error(
                         'Cause message:',
                         error.cause instanceof Error
                             ? error.cause.message
-                            : String(error.cause),
+                            : String(error.cause)
                     )
                     console.error(
                         'Cause stack:',
                         error.cause instanceof Error
                             ? error.cause.stack
-                            : 'No stack trace',
+                            : 'No stack trace'
                     )
                     console.error('Full cause object:', error.cause)
                     console.error('=== End Error Cause Details ===')
@@ -421,8 +421,8 @@ export const validatedApiHandler = <T>(
     schema: z.ZodType<T>,
     handler: (
         c: Context,
-        validatedData: T,
-    ) => Promise<Response | SuccessResponse>,
+        validatedData: T
+    ) => Promise<Response | SuccessResponse>
 ) => {
     return async (c: Context) => {
         try {

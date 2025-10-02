@@ -25,7 +25,7 @@ app.get(
             message: 'Samples API is running',
             timestamp: new Date().toISOString(),
         })
-    }),
+    })
 )
 
 // サブAPIをルーティング

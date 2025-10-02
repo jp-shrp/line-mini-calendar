@@ -9,7 +9,7 @@ export const getClientAdmin = () => {
                 autoRefreshToken: false,
                 persistSession: false,
             },
-        },
+        }
     )
 }
 

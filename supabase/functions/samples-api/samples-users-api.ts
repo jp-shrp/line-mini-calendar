@@ -54,7 +54,7 @@ samplesUsersApi.get(
             },
             message: 'ユーザー一覧を取得しました',
         })
-    }),
+    })
 )
 
 /**
@@ -83,7 +83,7 @@ samplesUsersApi.get(
             },
             message: 'ユーザー詳細を取得しました',
         })
-    }),
+    })
 )
 
 /**
@@ -106,7 +106,7 @@ samplesUsersApi.post(
                 throw createApiError(
                     'VALIDATION_ERROR',
                     400,
-                    'このメールアドレスは既に使用されています',
+                    'このメールアドレスは既に使用されています'
                 )
             }
 
@@ -126,8 +126,8 @@ samplesUsersApi.post(
                 },
                 message: 'ユーザーを作成しました',
             })
-        },
-    ),
+        }
+    )
 )
 
 /**
@@ -181,8 +181,8 @@ samplesUsersApi.put(
                 },
                 message: 'ユーザー情報を更新しました',
             })
-        },
-    ),
+        }
+    )
 )
 
 /**
@@ -215,7 +215,7 @@ samplesUsersApi.delete(
             },
             message: 'ユーザーを削除しました',
         })
-    }),
+    })
 )
 
 export default samplesUsersApi

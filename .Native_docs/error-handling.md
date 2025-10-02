@@ -17,7 +17,7 @@ const result = await callFunction<ResponseType>(
     {
         title: 'エラータイトル',
         message: 'エラーメッセージ',
-    },
+    }
 )
 
 // Result型: { data: T | null, error: boolean, success: boolean }

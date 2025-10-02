@@ -64,7 +64,7 @@ const MyComponent = () => {
         {
             showGlobalLoading: true, // グローバルローディングを表示
             loadingMessage: 'データを取得中...',
-        },
+        }
     )
 
     if (error) return <ErrorView error={error} />
@@ -92,7 +92,7 @@ const MyComponent = () => {
         {
             showGlobalLoading: true,
             loadingMessage: '保存中...',
-        },
+        }
     )
 
     const handleSubmit = (data: UserData) => {
@@ -157,7 +157,7 @@ const UserListScreen = () => {
         },
         {
             showGlobalLoading: false, // スケルトンを使うのでグローバルは不要
-        },
+        }
     )
 
     if (isLoading) {

@@ -230,7 +230,7 @@ const { data, isLoading } = useQueryWithLoading(
     },
     {
         showGlobalLoading: false,
-    },
+    }
 )
 ```
 

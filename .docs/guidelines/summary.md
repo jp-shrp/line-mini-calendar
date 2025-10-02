@@ -134,7 +134,7 @@ app.post(
     validatedApiHandler(schema, async (c, validatedData) => {
         // try-catch不要、エラーは自動処理
         return c.json(result)
-    }),
+    })
 )
 ```
 

@@ -65,7 +65,7 @@ export const apiHandler = <T>(handler: (c: Context) => Promise<T>) => {
  */
 export const validatedApiHandler = <T>(
     schema: any,
-    handler: (c: Context, validatedData: T) => Promise<Response>,
+    handler: (c: Context, validatedData: T) => Promise<Response>
 ) => {
     // 内部でバリデーションとエラーハンドリングを実行
 }
@@ -97,7 +97,7 @@ app.get(
     '/',
     apiHandler(async (c) => {
         return c.json({ message: 'Users API is running' })
-    }),
+    })
 )
 
 // サブAPIをルーティング
@@ -143,7 +143,7 @@ rewardsApi.get(
         })
 
         return c.json(result)
-    }),
+    })
 )
 
 /**
@@ -164,7 +164,7 @@ rewardsApi.get(
         }
 
         return c.json({ reward: rewardData })
-    }),
+    })
 )
 
 export default rewardsApi
@@ -341,7 +341,7 @@ usersApi.get(
             data: users,
             message: 'ユーザー一覧を取得しました',
         })
-    }),
+    })
 )
 
 // validatedApiHandlerの使用例
@@ -353,7 +353,7 @@ usersApi.post(
             data: user,
             message: 'ユーザーを作成しました',
         })
-    }),
+    })
 )
 ```
 
@@ -434,7 +434,7 @@ export const authMiddleware = async (c: Context, next: Next) => {
 
     const supabase = createClient(
         Deno.env.get('SUPABASE_URL')!,
-        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     )
 
     const {

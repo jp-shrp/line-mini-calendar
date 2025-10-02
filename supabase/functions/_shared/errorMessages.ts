@@ -58,7 +58,7 @@ export const ERROR_MESSAGE_MAP: Record<
 export const getErrorMessage = (
     code: ErrorCode,
     customMessage?: string,
-    customTitle?: string,
+    customTitle?: string
 ): { title: string; message: string } => {
     const defaultMessages =
         ERROR_MESSAGE_MAP[code] ||

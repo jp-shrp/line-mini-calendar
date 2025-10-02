@@ -14,7 +14,7 @@ export const db = drizzle(client, { schema })
 // DBクライアントを使用したトランザクション処理のヘルパー関数
 export async function withTransaction<T>(
     //callback: (tx: PostgresJsDatabase<typeof schema>) => Promise<T>,
-    callback: (tx: any) => Promise<T>,
+    callback: (tx: any) => Promise<T>
 ): Promise<T> {
     return db.transaction(async (tx) => {
         const result = await callback(tx)

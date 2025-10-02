@@ -65,7 +65,7 @@ export const apiHandler = <T>(handler: (c: Context) => Promise<T>) => {
  */
 export const validatedApiHandler = <T>(
     schema: any,
-    handler: (c: Context, validatedData: T) => Promise<Response>,
+    handler: (c: Context, validatedData: T) => Promise<Response>
 ) => {
     // 内部でバリデーションとエラーハンドリングを実行
 }
@@ -96,7 +96,7 @@ app.get(
     '/',
     apiHandler(async (c) => {
         return c.json({ message: 'Users API is running' })
-    }),
+    })
 )
 
 // サブAPIをルーティング
@@ -140,7 +140,7 @@ rewardsApi.get(
         })
 
         return c.json(result)
-    }),
+    })
 )
 
 /**
@@ -159,7 +159,7 @@ rewardsApi.get(
         }
 
         return c.json({ reward: rewardData })
-    }),
+    })
 )
 
 export default rewardsApi
@@ -173,7 +173,7 @@ export default rewardsApi
 - RESTful設計を基本とし、リソース単位でエンドポイントを分割
 - サーバー側で認証・バリデーション・エラー処理を徹底
 - レスポンスは必ずJSON形式、型定義を厳守
-- **ビジネスロジックはサービス層（_shared/services/）に分離**
+- **ビジネスロジックはサービス層（\_shared/services/）に分離**
 
 ### ディレクトリ構造
 
@@ -197,7 +197,7 @@ supabase/functions/
     └── index.ts
 ```
 
-## 3. サービス層（_shared/services/）の設計
+## 3. サービス層（\_shared/services/）の設計
 
 ### 単一責任の原則
 
@@ -307,7 +307,10 @@ export async function GET(request: NextRequest) {
         const users = await fetchUsers()
         return NextResponse.json({ users })
     } catch (error) {
-        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
+        return NextResponse.json(
+            { error: 'Internal Server Error' },
+            { status: 500 }
+        )
     }
 }
 
@@ -317,7 +320,10 @@ export async function POST(request: NextRequest) {
         const user = await createUser(body)
         return NextResponse.json({ user })
     } catch (error) {
-        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
+        return NextResponse.json(
+            { error: 'Internal Server Error' },
+            { status: 500 }
+        )
     }
 }
 ```
@@ -337,11 +343,11 @@ export async function GET(
 }
 ```
 
-## 7. 🚨 **MUST**: _shared ディレクトリ管理ルール
+## 7. 🚨 **MUST**: \_shared ディレクトリ管理ルール
 
 ### 重要な原則
 
-**_shared ディレクトリに新しいファイルを追加した場合は、必ず以下のファイルを更新する必要があります：**
+**\_shared ディレクトリに新しいファイルを追加した場合は、必ず以下のファイルを更新する必要があります：**
 
 1. **`supabase/functions/import_map.json`** - Supabase Functions内での import パス解決用
 2. **`deno.json`** - プロジェクトルートでの Deno 実行時の import パス解決用

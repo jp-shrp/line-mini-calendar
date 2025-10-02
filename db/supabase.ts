@@ -10,7 +10,7 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
  * ブラウザ環境で使用し、自動的にCookieを通じてセッション管理を行う
  */
 export const createSupabaseClient = () => {
-  return createBrowserClient(supabaseUrl, supabaseAnonKey)
+    return createBrowserClient(supabaseUrl, supabaseAnonKey)
 }
 
 /**
@@ -18,18 +18,18 @@ export const createSupabaseClient = () => {
  * Edge FunctionsやServer Actionsで使用
  */
 export const createSupabaseAdminClient = () => {
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || ''
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || ''
 
-  if (!serviceRoleKey) {
-    throw new Error('SUPABASE_SERVICE_ROLE_KEY is not defined')
-  }
+    if (!serviceRoleKey) {
+        throw new Error('SUPABASE_SERVICE_ROLE_KEY is not defined')
+    }
 
-  return createClient(supabaseUrl, serviceRoleKey, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-    },
-  })
+    return createClient(supabaseUrl, serviceRoleKey, {
+        auth: {
+            autoRefreshToken: false,
+            persistSession: false,
+        },
+    })
 }
 
 /**
@@ -38,15 +38,15 @@ export const createSupabaseAdminClient = () => {
 let browserClient: ReturnType<typeof createBrowserClient> | null = null
 
 export const getSupabaseClient = () => {
-  if (typeof window === 'undefined') {
-    // サーバーサイドでは毎回新しいクライアントを作成
-    return createSupabaseClient()
-  }
+    if (typeof window === 'undefined') {
+        // サーバーサイドでは毎回新しいクライアントを作成
+        return createSupabaseClient()
+    }
 
-  // ブラウザ環境ではシングルトンを使用
-  if (!browserClient) {
-    browserClient = createSupabaseClient()
-  }
+    // ブラウザ環境ではシングルトンを使用
+    if (!browserClient) {
+        browserClient = createSupabaseClient()
+    }
 
-  return browserClient
+    return browserClient
 }

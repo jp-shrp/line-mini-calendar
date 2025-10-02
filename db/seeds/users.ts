@@ -15,7 +15,7 @@ export const usersSeeder = async () => {
             .filter((x) => x.user_metadata?.role === 'user')
             .map(async (x) => {
                 return await adminClient.auth.admin.deleteUser(x.id)
-            }),
+            })
     )
 
     await create()
@@ -49,7 +49,7 @@ const create = async () => {
                     },
                     email_confirm: true,
                 })
-            }),
+            })
         )
         await new Promise((resolve) => setTimeout(resolve, 1000))
     }
@@ -67,7 +67,7 @@ const runSeeder = async () => {
         try {
             await usersSeeder()
             console.log(
-                `Seed process for ${currentFileName} completed successfully`,
+                `Seed process for ${currentFileName} completed successfully`
             )
         } catch (error) {
             console.error(`Error running ${currentFileName}:`, error)

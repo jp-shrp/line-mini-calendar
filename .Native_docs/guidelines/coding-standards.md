@@ -625,13 +625,13 @@ const MyComponent = () => {
                     {
                         body: data,
                         method: 'POST',
-                    },
+                    }
                 )
             },
             {
                 title: 'エラータイトル',
                 message: 'エラー時に表示するメッセージ',
-            },
+            }
         )
 
         // successチェック
@@ -663,7 +663,7 @@ const fetchData = async () => {
             {
                 title: 'データ取得エラー',
                 message: 'データの取得に失敗しました',
-            },
+            }
         )
 
         // dataを直接使用
@@ -691,7 +691,7 @@ const handleLogin = async (email: string, password: string) => {
             {
                 title: 'ログインエラー',
                 message: 'ログインに失敗しました',
-            },
+            }
         )
 
         // ログイン成功
@@ -717,7 +717,7 @@ const result = await callFunction(
             // カスタムエラーハンドリング
             console.log('Custom handling:', res)
         },
-    },
+    }
 )
 
 // successチェックが必須
@@ -747,7 +747,7 @@ if (result.success && result.data) {
 // シンプルな使用例
 const result = await callFunction(
     async () => await supabase.functions.invoke('endpoint', { body: data }),
-    { title: 'エラー', message: 'エラーメッセージ' },
+    { title: 'エラー', message: 'エラーメッセージ' }
 )
 
 if (!result.success || !result.data) {
@@ -1061,7 +1061,7 @@ export const useUserMemberQuery = () => {
                 [typeof userMemberQueryKey.membersList, string, number]
             >,
             'queryKey' | 'queryFn'
-        >,
+        >
     ) => {
         return useQuery({
             queryKey: [
@@ -1074,7 +1074,7 @@ export const useUserMemberQuery = () => {
                     'members-api/list',
                     {
                         body: { shopId, page: pagination.currentPage },
-                    },
+                    }
                 )
                 if (error) throw error
                 return data?.members?.map((m) => new Member(m)) || []
@@ -1098,7 +1098,7 @@ export const useUserMemberQuery = () => {
                 [typeof userMemberQueryKey.memberDetail, string, string]
             >,
             'queryKey' | 'queryFn'
-        >,
+        >
     ) => {
         return useQuery({
             queryKey: [userMemberQueryKey.memberDetail, memberId, shopId],
@@ -1107,7 +1107,7 @@ export const useUserMemberQuery = () => {
                     'members-api/detail',
                     {
                         body: { memberId, shopId },
-                    },
+                    }
                 )
                 if (error) throw error
                 return new Member(data.member)

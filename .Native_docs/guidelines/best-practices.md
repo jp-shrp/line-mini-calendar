@@ -47,7 +47,7 @@ export const useSamplesApi = () => {
             {
                 title: 'ユーザー一覧取得エラー',
                 message: 'ユーザー一覧の取得に失敗しました',
-            },
+            }
         )
     }
 }
@@ -525,7 +525,7 @@ export function useUpdateUser() {
                     {
                         method: 'PUT',
                         body: data,
-                    },
+                    }
                 )
             })
             if (!result.success || !result.data)
@@ -552,7 +552,7 @@ export function useDeleteUser() {
                     `users-api/users/${id}`,
                     {
                         method: 'DELETE',
-                    },
+                    }
                 )
             })
             if (!result.success) throw new Error('Failed to delete user')
@@ -586,7 +586,7 @@ export function useOptimisticUpdateUser() {
 
             // 現在の値を保存
             const previousUser = queryClient.getQueryData(
-                queryKeys.users.detail(id),
+                queryKeys.users.detail(id)
             )
 
             // オプティミスティック更新
@@ -595,7 +595,7 @@ export function useOptimisticUpdateUser() {
                 (old: User) => ({
                     ...old,
                     ...data,
-                }),
+                })
             )
 
             // ロールバック用データを返す
@@ -606,7 +606,7 @@ export function useOptimisticUpdateUser() {
             if (context?.previousUser) {
                 queryClient.setQueryData(
                     queryKeys.users.detail(id),
-                    context.previousUser,
+                    context.previousUser
                 )
             }
         },

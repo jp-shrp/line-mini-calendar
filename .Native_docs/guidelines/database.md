@@ -192,10 +192,10 @@ export const products = pgTable(
             // 複合ユニーク制約
             uniqueSkuCategory: unique('unique_sku_category').on(
                 table.sku,
-                table.category,
+                table.category
             ),
         }
-    },
+    }
 )
 ```
 
@@ -263,7 +263,7 @@ export class UserService {
         query = query.orderBy(
             sortOrder === 'desc'
                 ? desc(users[sortColumn])
-                : asc(users[sortColumn]),
+                : asc(users[sortColumn])
         )
 
         // ページネーション

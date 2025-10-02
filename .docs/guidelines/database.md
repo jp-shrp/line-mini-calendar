@@ -30,7 +30,7 @@
 ### マイグレーションのベストプラクティス
 
 - **スキーマファースト**: 常にスキーマ定義を更新してからマイグレーションを生成
-- **命名規則**: マイグレーション名は「動作_対象_詳細」の形式を推奨（例: add_users_table, update_posts_add_status）
+- **命名規則**: マイグレーション名は「動作*対象*詳細」の形式を推奨（例: add_users_table, update_posts_add_status）
 - **レビュー必須**: 生成されたSQLファイルを必ず確認してから実行
 - **バックアップ**: 本番環境では必ずバックアップを取ってから実行
 
@@ -116,10 +116,10 @@ export const products = pgTable(
             // 複合ユニーク制約
             uniqueSkuCategory: unique('unique_sku_category').on(
                 table.sku,
-                table.category,
+                table.category
             ),
         }
-    },
+    }
 )
 ```
 
@@ -239,7 +239,7 @@ export class PostService {
 
 - **テーブル名**: 複数形、snake_case（例: users, order_items）
 - **カラム名**: snake_case（例: created_at, is_active）
-- **外部キー**: {テーブル名単数形}_id（例: user_id, product_id）
+- **外部キー**: {テーブル名単数形}\_id（例: user_id, product_id）
 
 ### インデックス設計
 

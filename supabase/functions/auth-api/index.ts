@@ -38,14 +38,14 @@ app.post(
         const supabaseAdmin = createSupabaseAdminClient()
         const result = await getOrCreateAnonymousUser(
             supabaseAdmin,
-            data.deviceId,
+            data.deviceId
         )
 
         return new SuccessResponse({
             data: result,
             message: 'Anonymous login successful',
         })
-    }),
+    })
 )
 
 /**
@@ -62,7 +62,7 @@ app.post(
             data: result,
             message: 'Auth0 login successful',
         })
-    }),
+    })
 )
 
 /**
@@ -82,7 +82,7 @@ app.post(
 
             const { data: existingUser } =
                 await supabaseAdmin.auth.admin.getUserById(
-                    migrationCheck.toUserId,
+                    migrationCheck.toUserId
                 )
 
             if (!existingUser?.user?.email) {
@@ -139,7 +139,7 @@ app.post(
                 name: data.auth0User.name,
                 picture: data.auth0User.picture,
                 auth0_id: data.auth0User.sub,
-            },
+            }
         )
 
         const { data: newUser } =
@@ -185,7 +185,7 @@ app.post(
             },
             message: 'Migration successful',
         })
-    }),
+    })
 )
 
 Deno.serve(app.fetch)
