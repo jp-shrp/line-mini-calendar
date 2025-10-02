@@ -1,7 +1,7 @@
 'use client'
-import { LoadingProvider } from '@/contexts/LoadingContext'
-import { ModalProvider } from '@/contexts/ModalContext'
-import { OnLoadingProvider } from '@/contexts/OnLoadingContext'
+import { LoadingProvider } from '@/src/contexts/LoadingContext'
+import { ModalProvider } from '@/src/contexts/ModalContext'
+import { OnLoadingProvider } from '@/src/contexts/OnLoadingContext'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ReactNode } from 'react'
 

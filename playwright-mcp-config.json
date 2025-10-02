@@ -1,10 +1,9 @@
 {
     "browser": {
-        "browserName": "chrome",
+        "browserName": "chromium",
         "isolated": true,
         "userDataDir": "/tmp/playwright-user-data",
         "launchOptions": {
-            "channel": "chromium",
             "headless": true,
             "args": ["--no-sandbox", "--disable-dev-shm-usage"]
         },
