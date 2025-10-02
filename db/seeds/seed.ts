@@ -1,4 +1,4 @@
-import { client } from '@/db/drizzle/drizzle'
+import { client } from '../../db/drizzle/drizzle'
 
 // ユーザー関連
 import { usersSeeder } from './users'

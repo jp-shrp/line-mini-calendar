@@ -15,7 +15,14 @@
         "mock:dev": "cd .server && npm run dev",
         "mock:build": "cd .server && npm run build",
         "mock:start": "cd .server && npm run start",
-        "mock:install": "cd .server && npm install"
+        "mock:install": "cd .server && npm install",
+        "make:migration": "npx drizzle-kit generate --config=./db/drizzle/drizzle.config.ts --name",
+        "make:migration:custom": "npx drizzle-kit generate --custom --config=./db/drizzle/drizzle.config.ts --name",
+        "db:migrate": "npx drizzle-kit migrate --config=./db/drizzle/drizzle.config.ts",
+        "db:migrate:test": "APP_ENV=test npx drizzle-kit migrate --config=./db/drizzle/drizzle.config.ts",
+        "db:drop": "npx drizzle-kit drop --config=./db/drizzle/drizzle.config.ts",
+        "db:seed": "APP_ENV=local npx tsx ",
+        "db:seed:st": "source .env.preview && APP_ENV=preview dotenv -e .env.preview -- npx tsx "
     },
     "dependencies": {
         "@hookform/resolvers": "^5.2.2",

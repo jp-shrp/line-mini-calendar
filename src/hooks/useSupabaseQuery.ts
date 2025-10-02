@@ -1,7 +1,6 @@
 'use client'
 
-import { useModal } from '@/src/contexts/ModalContext'
-import { getErrorMessage, isStandardApiError } from '@/src/lib/error-handler'
+import { createSupabaseClient } from '@/db/supabase'
 import { supabaseApiClient } from '@/src/lib/supabase-api-client'
 import type { EdgeFunctionOptions, StandardApiError } from '@/src/types/api'
 import { useQuery, type UseQueryOptions } from '@tanstack/react-query'
@@ -18,7 +17,6 @@ export interface UseSupabaseQueryOptions<TData = any>
     functionName: string
     params?: Record<string, any>
     edgeOptions?: EdgeFunctionOptions
-    showErrorModal?: boolean
 }
 
 /**
@@ -40,51 +38,43 @@ export interface UseSupabaseQueryOptions<TData = any>
  * })
  *
  * @example
- * // エラーモーダルを無効化
- * const { data } = useSupabaseQuery({
+ * // カスタムエラーハンドリング
+ * const { data, error } = useSupabaseQuery({
  *   queryKey: ['users'],
  *   functionName: 'samples-api/users',
- *   showErrorModal: false,
  * })
+ *
+ * if (error) {
+ *   // エラー処理
+ * }
  */
 export function useSupabaseQuery<TData = any>({
     queryKey,
     functionName,
     params,
     edgeOptions,
-    showErrorModal = true,
     enabled = true,
     ...queryOptions
 }: UseSupabaseQueryOptions<TData>) {
-    const { openModal } = useModal()
+    // GETの場合、paramsをクエリストリングに変換
+    const functionNameWithParams = params
+        ? `${functionName}?${new URLSearchParams(params).toString()}`
+        : functionName
 
     return useQuery<TData, StandardApiError>({
         queryKey,
         queryFn: async () => {
-            return await supabaseApiClient.get<TData>(
-                functionName,
-                params,
+            const supabase = createSupabaseClient()
+            return await supabaseApiClient.callEdgeFunction<TData>(
+                async () => {
+                    return supabase.functions.invoke(functionNameWithParams, {
+                        method: 'GET',
+                    })
+                },
                 edgeOptions
             )
         },
         enabled,
         ...queryOptions,
-        // エラー時の処理をラップ
-        throwOnError: (error, query) => {
-            if (showErrorModal && isStandardApiError(error)) {
-                openModal({
-                    title: error.title || 'エラーが発生しました',
-                    content: getErrorMessage(error),
-                    type: 'error',
-                })
-            }
-
-            // デフォルトの動作を維持
-            const throwOnErrorOption = queryOptions.throwOnError
-            if (typeof throwOnErrorOption === 'function') {
-                return throwOnErrorOption(error, query)
-            }
-            return throwOnErrorOption ?? false
-        },
     })
 }

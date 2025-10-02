@@ -39,4 +39,8 @@ export interface EdgeFunctionOptions {
     params?: Record<string, any>
     headers?: Record<string, string>
     skipAuth?: boolean
+    error?: {
+        title: string
+        message: string
+    }
 }

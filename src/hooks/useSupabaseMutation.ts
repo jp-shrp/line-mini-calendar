@@ -1,10 +1,8 @@
 'use client'
 
-import { useModal } from '@/src/contexts/ModalContext'
+import { createSupabaseClient } from '@/db/supabase'
 import {
     extractValidationErrors,
-    getErrorMessage,
-    isStandardApiError,
     isValidationError,
 } from '@/src/lib/error-handler'
 import { supabaseApiClient } from '@/src/lib/supabase-api-client'
@@ -29,7 +27,6 @@ export interface UseSupabaseMutationOptions<TData = any, TVariables = any>
     method?: 'POST' | 'PUT' | 'PATCH' | 'DELETE'
     edgeOptions?: EdgeFunctionOptions
     invalidateQueries?: string[]
-    showErrorModal?: boolean
 }
 
 /**
@@ -44,7 +41,6 @@ export interface UseSupabaseMutationFormOptions<TData = any, TForm = any>
     method?: 'POST' | 'PUT' | 'PATCH' | 'DELETE'
     edgeOptions?: EdgeFunctionOptions
     invalidateQueries?: string[]
-    showErrorModal?: boolean
 }
 
 /**
@@ -75,7 +71,6 @@ export function useSupabaseMutation<TData = any, TVariables = any>(
     formOptions?: UseSupabaseMutationFormOptions<TData, any>
 ) {
     const queryClient = useQueryClient()
-    const { openModal } = useModal()
 
     // フォーム連携版かどうかを判定
     const isFormVersion = formOrOptions && 'setError' in formOrOptions
@@ -88,30 +83,23 @@ export function useSupabaseMutation<TData = any, TVariables = any>(
             method = 'POST',
             edgeOptions,
             invalidateQueries = [],
-            showErrorModal = true,
             ...mutationOptions
         } = formOptions
 
         return useMutation({
             ...mutationOptions,
             mutationFn: async (variables: any) => {
-                const methodMap = {
-                    POST: supabaseApiClient.post.bind(supabaseApiClient),
-                    PUT: supabaseApiClient.put.bind(supabaseApiClient),
-                    PATCH: supabaseApiClient.patch.bind(supabaseApiClient),
-                    DELETE: supabaseApiClient.delete.bind(supabaseApiClient),
-                }
-
-                const apiMethod = methodMap[method]
-                if (method === 'DELETE') {
-                    return await supabaseApiClient.delete<TData>(
-                        functionName,
-                        edgeOptions
-                    )
-                }
-                return await apiMethod<TData>(
-                    functionName,
-                    variables,
+                const supabase = createSupabaseClient()
+                return await supabaseApiClient.callEdgeFunction<TData>(
+                    async () => {
+                        return supabase.functions.invoke(functionName, {
+                            method,
+                            body:
+                                method === 'DELETE'
+                                    ? undefined
+                                    : (variables as any),
+                        })
+                    },
                     edgeOptions
                 )
             },
@@ -143,23 +131,6 @@ export function useSupabaseMutation<TData = any, TVariables = any>(
                             message,
                         })
                     })
-
-                    if (showErrorModal) {
-                        openModal({
-                            title: error.title || 'バリデーションエラー',
-                            content:
-                                error.message ||
-                                '入力内容に不備があります。内容をご確認ください。',
-                            type: 'error',
-                        })
-                    }
-                } else if (showErrorModal) {
-                    // その他のエラーの場合、モーダル表示
-                    openModal({
-                        title: error.title || 'エラーが発生しました',
-                        content: getErrorMessage(error),
-                        type: 'error',
-                    })
                 }
 
                 if (mutationOptions.onError) {
@@ -174,30 +145,23 @@ export function useSupabaseMutation<TData = any, TVariables = any>(
             method = 'POST',
             edgeOptions,
             invalidateQueries = [],
-            showErrorModal = true,
             ...mutationOptions
         } = formOrOptions as UseSupabaseMutationOptions<TData, TVariables>
 
         return useMutation({
             ...mutationOptions,
             mutationFn: async (variables: TVariables) => {
-                const methodMap = {
-                    POST: supabaseApiClient.post.bind(supabaseApiClient),
-                    PUT: supabaseApiClient.put.bind(supabaseApiClient),
-                    PATCH: supabaseApiClient.patch.bind(supabaseApiClient),
-                    DELETE: supabaseApiClient.delete.bind(supabaseApiClient),
-                }
-
-                const apiMethod = methodMap[method]
-                if (method === 'DELETE') {
-                    return await supabaseApiClient.delete<TData>(
-                        functionName,
-                        edgeOptions
-                    )
-                }
-                return await apiMethod<TData>(
-                    functionName,
-                    variables,
+                const supabase = createSupabaseClient()
+                return await supabaseApiClient.callEdgeFunction<TData>(
+                    async () => {
+                        return supabase.functions.invoke(functionName, {
+                            method,
+                            body:
+                                method === 'DELETE'
+                                    ? undefined
+                                    : (variables as any),
+                        })
+                    },
                     edgeOptions
                 )
             },
@@ -215,19 +179,6 @@ export function useSupabaseMutation<TData = any, TVariables = any>(
                         variables,
                         context
                     )
-                }
-            },
-            onError: (error: StandardApiError, variables, context) => {
-                if (showErrorModal && isStandardApiError(error)) {
-                    openModal({
-                        title: error.title || 'エラーが発生しました',
-                        content: getErrorMessage(error),
-                        type: 'error',
-                    })
-                }
-
-                if (mutationOptions.onError) {
-                    ;(mutationOptions.onError as any)(error, variables, context)
                 }
             },
         })

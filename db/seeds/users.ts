@@ -1,5 +1,6 @@
 import { fakerJA as faker } from '@faker-js/faker'
 import { sql } from 'drizzle-orm'
+import { users } from '../../supabase/functions/_shared/schemas/users'
 import { client, db } from '../drizzle/drizzle'
 import { getClientAdmin } from '../drizzle/share'
 
@@ -11,19 +12,16 @@ export const usersSeeder = async () => {
 
     const list = await adminClient.auth.admin.listUsers()
     await Promise.all(
-        list.data.users
-            .filter((x) => x.user_metadata?.role === 'user')
-            .map(async (x) => {
-                return await adminClient.auth.admin.deleteUser(x.id)
-            })
+        list.data.users.map(async (x) => {
+            return await adminClient.auth.admin.deleteUser(x.id)
+        })
     )
 
     await create()
 }
 
 const create = async () => {
-    // auth.usersに作成すれば、Triggerでpublic.usersにも自動的に作成される
-    await adminClient.auth.admin.createUser({
+    const { data } = await adminClient.auth.admin.createUser({
         email: 'test@mail.com',
         password: 'password',
         email_confirm: true,
@@ -34,12 +32,18 @@ const create = async () => {
         },
     })
 
+    const user = data.user!
+    await db.insert(users).values({
+        email: user.email!,
+        name: 'TestA',
+    })
+
     // 150件のユーザーを30件ずつ5回に分けて作成
     for (let chunk = 0; chunk < 1; chunk++) {
         await Promise.all(
             Array.from({ length: 30 }).map(async (_, index) => {
                 const globalIndex = chunk * 30 + index
-                await adminClient.auth.admin.createUser({
+                const { data } = await adminClient.auth.admin.createUser({
                     email: `user-${globalIndex}-${faker.internet.email()}`,
                     password: 'password',
                     user_metadata: {
@@ -48,6 +52,10 @@ const create = async () => {
                         picture: faker.image.avatar(),
                     },
                     email_confirm: true,
+                })
+                await db.insert(users).values({
+                    email: data.user!.email!,
+                    name: faker.person.fullName(),
                 })
             })
         )
