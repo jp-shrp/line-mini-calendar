@@ -20,14 +20,70 @@ class SupabaseApiClient {
 
             // エラーレスポンスの処理
             if (response.error) {
+                // response.responseオブジェクトからHTTPステータスコードとレスポンスボディを取得
+                const httpResponse = response.response as any
+                const httpStatus = httpResponse?.status || 500
+
+                // レスポンスボディをJSONとして取得
+                let errorBody: any = null
+                try {
+                    // Supabase Edge Functionsからのレスポンスは既にクライアントによってパースされている可能性がある
+                    // response.dataにnullが入っているが、エラーの詳細はresponse.responseから取得する必要がある
+
+                    // HTTPレスポンスボディを読み取る
+                    // 注: Fetch APIのResponseオブジェクトの場合、bodyは既に消費されている可能性がある
+                    // Supabaseクライアントがエラー時にボディを読み取っていない可能性を考慮
+
+                    // まず、error.contextをチェック
+                    if (response.error.context && Object.keys(response.error.context).length > 0) {
+                        errorBody = response.error.context
+                    }
+                    // 次に、response.error.messageがJSON文字列かチェック
+                    else if (
+                        typeof response.error.message === 'string' &&
+                        response.error.message.trim().startsWith('{')
+                    ) {
+                        errorBody = JSON.parse(response.error.message)
+                    }
+                    // HTTPレスポンスから直接読み取れるか試行
+                    else if (httpResponse) {
+                        // cloneしてtextを読み取ることを試みる
+                        // ただし、既に消費されている場合は失敗する
+                        try {
+                            const responseClone = httpResponse.clone?.()
+                            if (responseClone && typeof responseClone.text === 'function') {
+                                const bodyText = await responseClone.text()
+                                if (bodyText && bodyText.trim().startsWith('{')) {
+                                    errorBody = JSON.parse(bodyText)
+                                }
+                            }
+                        } catch (cloneError) {
+                            // clone/text読み取りに失敗した場合は無視
+                            console.log('Failed to read response body:', cloneError)
+                        }
+                    }
+                } catch (parseError) {
+                    console.log('Error parsing response body:', parseError)
+                    // パースに失敗した場合は無視
+                }
+
+                // エラーボディから情報を取得、なければデフォルト値を使用
                 const error: StandardApiError = {
-                    title: options.error?.title || 'エラーが発生しました',
+                    title:
+                        errorBody?.title ||
+                        options.error?.title ||
+                        'エラーが発生しました',
                     message:
+                        errorBody?.message ||
                         options.error?.message ||
                         response.error.message ||
                         '処理中にエラーが発生しました',
-                    code: response.error.code || 'EDGE_FUNCTION_ERROR',
-                    status: response.error.status || 500,
+                    code:
+                        errorBody?.code ||
+                        response.error.code ||
+                        'EDGE_FUNCTION_ERROR',
+                    status: errorBody?.status || httpStatus,
+                    details: errorBody?.details,
                 }
                 throw error
             }
