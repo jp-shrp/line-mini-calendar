@@ -87,6 +87,7 @@ export type Variables = {
 // サブAPIのインポート
 import rewardsApi from './rewards-api.ts'
 import membersApi from './members-api.ts'
+// ... 他のサブAPI
 
 // 共通初期化関数を使ってAPIアプリケーションを初期化
 const app = initApi<{ Variables: Variables }>('/users-api')
@@ -102,6 +103,7 @@ app.get(
 // サブAPIをルーティング
 app.route('/rewards', rewardsApi)
 app.route('/members', membersApi)
+// ... 他のルーティング
 
 Deno.serve(app.fetch)
 ```
@@ -124,6 +126,7 @@ const rewardsApi = new Hono<{ Variables: Variables }>()
 
 /**
  * ユーザー向けリワード一覧取得API
+ * ユーザーがアクセス可能なリワード一覧を返却する
  */
 rewardsApi.get(
     '/shops/:shopId',
@@ -145,6 +148,7 @@ rewardsApi.get(
 
 /**
  * ユーザー向け特典詳細取得API
+ * 特定の特典の詳細情報を取得する
  */
 rewardsApi.get(
     '/:rewardId',
@@ -152,6 +156,7 @@ rewardsApi.get(
     apiHandler(async (c) => {
         const rewardId = c.req.param('rewardId')
 
+        // 特典情報を取得
         const rewardData = await getRewardById(rewardId)
 
         if (!rewardData) {
@@ -173,7 +178,7 @@ export default rewardsApi
 - RESTful設計を基本とし、リソース単位でエンドポイントを分割
 - サーバー側で認証・バリデーション・エラー処理を徹底
 - レスポンスは必ずJSON形式、型定義を厳守
-- **ビジネスロジックはサービス層（_shared/services/）に分離**
+- **ビジネスロジックはサービス層（\_shared/services/）に分離**
 
 ### ディレクトリ構造
 
@@ -187,17 +192,41 @@ supabase/functions/
 │   └── utils/           # ユーティリティ
 ├── users-api/           # ユーザー関連API
 │   ├── index.ts         # ルート定義（メインエンドポイント）
-│   ├── profile-api.ts   # プロフィール関連API
-│   └── settings-api.ts  # 設定関連API
-├── products-api/        # 商品関連API
+│   ├── medias-api.ts    # メディア関連API
+│   └── posts-api.ts     # 記事関連API
+├── shops-api/           # ショップ関連API
 │   ├── index.ts         # ルート定義
-│   ├── list-api.ts      # 一覧関連API
-│   └── detail-api.ts    # 詳細関連API
+│   ├── members-api.ts   # メンバー関連API
+│   └── points-api.ts    # ポイント関連API
 └── notifications-api/   # 通知管理API（独立）
     └── index.ts
 ```
 
-## 3. サービス層（_shared/services/）の設計
+### APIエンドポイント設計
+
+メインAPIとサブAPIに分けて実装することで、責務を明確に分離します。
+
+#### メインAPI（index.ts）のルーティング例
+
+```
+GET    /users-api/                    # APIヘルスチェック
+GET    /users-api/health              # ヘルスチェック（自動生成）
+
+# サブAPIへのルーティング
+/users-api/rewards/*                  # rewards-api.tsへ委譲
+/users-api/members/*                  # members-api.tsへ委譲
+/users-api/points/*                   # points-api.tsへ委譲
+```
+
+#### サブAPIのエンドポイント例（rewards-api.ts）
+
+```
+GET    /users-api/rewards/shops/:shopId    # ショップのリワード一覧
+GET    /users-api/rewards/:rewardId        # リワード詳細
+POST   /users-api/rewards/:rewardId/claim  # リワード交換
+```
+
+## 3. サービス層（\_shared/services/）の設計
 
 ### 単一責任の原則
 
@@ -225,14 +254,29 @@ export class UserService {
     }
 }
 
-// _shared/services/ProductService.ts
-export class ProductService {
-    async getProducts(filters?: ProductFilters) {
-        // 商品取得ロジック
+// _shared/services/PointService.ts
+export class PointService {
+    async addPoints(userId: string, points: number) {
+        return await db.transaction(async (tx) => {
+            // ポイント追加ロジック
+        })
     }
 
-    async getProductById(id: string) {
-        // 商品詳細取得ロジック
+    async getPointBalance(userId: string) {
+        // ポイント残高取得ロジック
+    }
+}
+
+// 悪い例: 複数のドメインを扱うサービス
+class UserAndPointService {
+    async getUserProfile() {
+        /* ユーザー管理 */
+    }
+    async addPoints() {
+        /* ポイント管理 */
+    }
+    async sendNotification() {
+        /* 通知管理 */
     }
 }
 ```
@@ -247,6 +291,15 @@ export class ProductService {
 - **エンドポイントファイルはルーティング・認証・レスポンス処理のみを担当**
 - **具体的な処理は対応するサービス層に委譲**
 
+### 実装パターン
+
+サンプルコードの実装例（セクション1）を参照してください。重要なポイント：
+
+- **メインAPI（index.ts）**: ルーティングの集約とサブAPIへの委譲
+- **サブAPI（\*-api.ts）**: 各リソースの具体的なエンドポイント実装
+- **サービス層の活用**: ビジネスロジックはサービス層に委譲
+- **エラーハンドリング**: apiHandlerでtry-catchを内包
+
 ## 5. レスポンス形式・型定義
 
 ### 成功レスポンスの統一形式
@@ -259,10 +312,10 @@ export class SuccessResponse<T = unknown> {
     constructor(options: { data: T; message?: string })
 }
 
-// 使用例
+// 使用例（apiHandler内で自動的にJSONレスポンスに変換）
 return new SuccessResponse({
     data: users,
-    message: 'ユーザー一覧を取得しました',
+    message: 'ユーザー一覧を取得しました', // デフォルト: 'success'
 })
 
 // 実際のレスポンスJSON
@@ -273,12 +326,47 @@ return new SuccessResponse({
 }
 ```
 
+### apiHandlerでの自動変換
+
+`apiHandler` と `validatedApiHandler` は `SuccessResponse` インスタンスを自動的にJSONレスポンスに変換します：
+
+```typescript
+// apiHandlerの使用例
+usersApi.get(
+    '/users',
+    apiHandler(async () => {
+        const users = await getAllUsers()
+        // SuccessResponseを返すだけで、自動的にJSONレスポンスに変換される
+        return new SuccessResponse({
+            data: users,
+            message: 'ユーザー一覧を取得しました',
+        })
+    }),
+)
+
+// validatedApiHandlerの使用例
+usersApi.post(
+    '/users',
+    validatedApiHandler(createUserSchema, async (_c, validatedData) => {
+        const user = await createUser(validatedData)
+        return new SuccessResponse({
+            data: user,
+            message: 'ユーザーを作成しました',
+        })
+    }),
+)
+```
+
 ### 型定義の管理（Schema Firstアプローチ）
 
 - **Schema First**: リソース系の型は`_shared/schemas/*`のDrizzle ORMスキーマから生成
 - レスポンスは必ずJSON、プロパティはスネークケース
 - Edge FunctionsとClient両方で使用する型は `_shared/types/{api-name}-types.ts` で一元管理
-- importパスは`_shared/`で始まる（設定のaliasを使用）
+    - 例: `_shared/types/users-api-types.ts`
+    - importパスは`_shared/`で始まる（tsconfig.jsonのaliasを使用）
+    - これにより型の重複を防ぎ、Edge Functions側でも同じ型定義を利用可能
+- クライアント専用の型は `api/{resource}/types/` 配下に配置
+- Drizzle ORMスキーマから型を生成し、API固有の型はそれを拡張
 
 ```typescript
 // _shared/schemas/users.ts (Drizzle ORMスキーマ)
@@ -286,80 +374,161 @@ export const users = pgTable('users', {
     id: uuid('id').primaryKey().defaultRandom(),
     email: varchar('email', { length: 255 }).unique().notNull(),
     name: varchar('name', { length: 100 }),
+    profileImage: text('profile_image'),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
 })
 
 export type SelectUser = InferSelectModel<typeof users>
 export type InsertUser = InferInsertModel<typeof users>
+export type UpdateUser = Partial<InsertUser>
+
+// _shared/types/users-api-types.ts (Schema Firstで型を生成)
+import type { InsertUser, SelectUser, UpdateUser } from '_shared/schemas/users'
+
+// Schemaから生成された型を再エクスポート
+export type User = SelectUser
+
+// API固有の入力型定義（Schemaの型をベースに拡張）
+export type CreateUserInput = Omit<InsertUser, 'id' | 'createdAt' | 'updatedAt'>
+export type UpdateUserInput = UpdateUser
 ```
 
-## 6. Next.js API Routes
+## 6. その他の実装パターン
 
-### 基本構造
+### データベース接続（Drizzle ORM）
 
 ```typescript
-// app/api/users/route.ts
-import { NextRequest, NextResponse } from 'next/server'
+import { drizzle } from 'drizzle-orm/postgres-js'
+import postgres from 'postgres'
 
-export async function GET(request: NextRequest) {
-    try {
-        const users = await fetchUsers()
-        return NextResponse.json({ users })
-    } catch (error) {
-        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
+const connectionString = Deno.env.get('DATABASE_URL')!
+const client = postgres(connectionString)
+export const db = drizzle(client)
+
+// 使用例
+import { users } from '_shared/schemas/users'
+
+const allUsers = await db.select().from(users)
+const newUser = await db
+    .insert(users)
+    .values({
+        email: 'test@example.com',
+        name: 'Test User',
+    })
+    .returning()
+```
+
+### 認証ミドルウェア（authMiddleware）
+
+```typescript
+// Supabase認証の検証
+import { createClient } from 'supabase'
+
+export const authMiddleware = async (c: Context, next: Next) => {
+    const token = c.req.header('Authorization')?.replace('Bearer ', '')
+
+    if (!token) {
+        return c.json({ error: 'Unauthorized' }, 401)
+    }
+
+    const supabase = createClient(
+        Deno.env.get('SUPABASE_URL')!,
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+    )
+
+    const {
+        data: { user },
+        error,
+    } = await supabase.auth.getUser(token)
+
+    if (error || !user) {
+        return c.json({ error: 'Invalid token' }, 401)
+    }
+
+    c.set('user', user)
+    await next()
+}
+```
+
+### レート制限ミドルウェア
+
+```typescript
+const rateLimitMap = new Map()
+
+export const rateLimit = (limit = 100, window = 60000) => {
+    return async (c: Context, next: Next) => {
+        const ip = c.req.header('x-forwarded-for') || 'unknown'
+        const now = Date.now()
+        const userLimit = rateLimitMap.get(ip) || {
+            count: 0,
+            resetTime: now + window,
+        }
+
+        if (now > userLimit.resetTime) {
+            userLimit.count = 0
+            userLimit.resetTime = now + window
+        }
+
+        if (userLimit.count >= limit) {
+            return c.json({ error: 'Too many requests' }, 429)
+        }
+
+        userLimit.count++
+        rateLimitMap.set(ip, userLimit)
+        await next()
     }
 }
 
-export async function POST(request: NextRequest) {
-    try {
-        const body = await request.json()
-        const user = await createUser(body)
-        return NextResponse.json({ user })
-    } catch (error) {
-        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
-    }
-}
+// 使用
+app.use('/api/*', rateLimit(100, 60000)) // 100 requests per minute
 ```
 
-### 動的ルート
-
-```typescript
-// app/api/users/[id]/route.ts
-import { NextRequest, NextResponse } from 'next/server'
-
-export async function GET(
-    request: NextRequest,
-    { params }: { params: { id: string } }
-) {
-    const user = await fetchUserById(params.id)
-    return NextResponse.json({ user })
-}
-```
-
-## 7. 🚨 **MUST**: _shared ディレクトリ管理ルール
+## 7. 🚨 **MUST**: \_shared ディレクトリ管理ルール
 
 ### 重要な原則
 
-**_shared ディレクトリに新しいファイルを追加した場合は、必ず以下のファイルを更新する必要があります：**
+**\_shared ディレクトリに新しいファイルを追加した場合は、必ず以下の2つのファイルを更新する必要があります：**
 
 1. **`supabase/functions/import_map.json`** - Supabase Functions内での import パス解決用
 2. **`deno.json`** - プロジェクトルートでの Deno 実行時の import パス解決用
 
 ### 更新手順
 
+#### 新しいファイルを追加した場合
+
 ```json
 // supabase/functions/import_map.json
 {
     "imports": {
-        "_shared/validations/newValidation": "./_shared/validations/newValidation.ts"
+        // 既存のインポート...
+        "_shared/validations/newValidation": "./_shared/validations/newValidation.ts",
+        // 追加したファイルのパスを記載
     }
 }
 
 // deno.json
 {
     "imports": {
-        "_shared/validations/newValidation": "./supabase/functions/_shared/validations/newValidation.ts"
+        // 既存のインポート...
+        "_shared/validations/newValidation": "./supabase/functions/_shared/validations/newValidation.ts",
+        // プロジェクトルートからの相対パスで記載
     }
 }
 ```
+
+### 更新が必要なケース
+
+- ✅ 新しいバリデーションスキーマファイルを追加した場合
+- ✅ 新しいサービスファイルを追加した場合
+- ✅ 新しい型定義ファイルを追加した場合
+- ✅ 新しいミドルウェアファイルを追加した場合
+- ✅ 新しいユーティリティファイルを追加した場合
+
+### 注意事項
+
+- **忘れると Edge Functions でインポートエラーが発生します**
+- **両方のファイルを同時に更新することが重要です**
+- **パスの記載方法が異なることに注意してください**
+    - `import_map.json`: `./_shared/...` （相対パス）
+    - `deno.json`: `./supabase/functions/_shared/...` （プロジェクトルートからの相対パス）

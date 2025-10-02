@@ -4,21 +4,23 @@
 
 ### コアフレームワーク
 
-- **Next.js 15.3.2** - React フレームワーク（App Router）
+- **Expo SDK 53** - React Nativeのフレームワーク
+- **React Native 0.79.6** - クロスプラットフォームモバイルアプリ開発
 - **React 19.0.0** - UIライブラリ
-- **TypeScript 5** - 型安全な開発環境
+- **TypeScript 5.8.3** - 型安全な開発環境
+- **Expo Router 5** - ファイルベースのルーティング
 
 ### スタイリング
 
-- **Tailwind CSS 4** - ユーティリティファーストCSS
-- **@tailwindcss/postcss** - PostCSS統合
+- **NativeWind 4.1.23** - Tailwind CSSベースのスタイリング
+- **Tailwind CSS 3.4.17** - ユーティリティファーストCSS
 
 ### 状態管理・データフェッチング
 
-- **React Query (TanStack Query) 5.85.5** - サーバーステート管理
-- **Jotai 2.12.5** - アトミックな状態管理
-- **React Hook Form 7.60.0** - フォーム管理
-- **Zod 4.1.9** - スキーマバリデーション
+- **React Query (TanStack Query) 5.85.9** - サーバーステート管理
+- **Jotai 2.13.1** - アトミックな状態管理
+- **React Hook Form 7.62.0** - フォーム管理
+- **Zod 4.1.5** - スキーマバリデーション
 
 ## 2. バックエンド・データベース技術選定
 
@@ -30,70 +32,61 @@
 
 ### APIフレームワーク
 
-- **Hono** - 軽量WebフレームワークをEdge Functionsで使用
-- **Drizzle ORM** - TypeScript型安全なORM
+- **Hono 4.7.6** - 軽量WebフレームワークをEdge Functionsで使用
+- **Drizzle ORM 0.41.0** - TypeScript型安全なORM
 
 ## 3. 開発ツール
 
 ### コード品質
 
-- **ESLint 9** - リンティング
-- **Prettier 3.5.3** - コードフォーマッティング
-- **eslint-plugin-unused-imports** - 未使用インポート検出
+- **ESLint 9.25.0** - リンティング
+- **Prettier** - コードフォーマッティング
 
-### テスト
+### ビルド・デプロイ
 
-- **Jest 30.1.3** - ユニットテスト
-- **@testing-library/jest-dom** - DOM テスト
-- **ts-jest** - TypeScript サポート
+- **EAS Build** - Expoのビルドサービス
+- **Vercel** - Webアプリのホスティング（必要に応じて）
 
-## 4. Next.js特有の機能活用
+## 4. Expo特有の機能活用
 
 ### 環境変数管理
 
 ```typescript
-// 環境変数は .env.local に定義
-// NEXT_PUBLIC_ プレフィックスでクライアント側にも公開可能
-const apiUrl = process.env.NEXT_PUBLIC_API_URL
-const secretKey = process.env.SECRET_KEY // サーバー側のみ
+import Constants from 'expo-constants'
+const apiUrl = Constants.expoConfig?.extra?.apiUrl
 ```
 
-### サーバーアクション
+### セキュアストレージ
 
 ```typescript
-'use server'
-
-export async function createUser(formData: FormData) {
-    // サーバー側で実行される処理
-}
+import * as SecureStore from 'expo-secure-store'
+await SecureStore.setItemAsync('token', value)
 ```
 
 ### 画像最適化
 
 ```typescript
-import Image from 'next/image'
-
+import { Image } from 'expo-image';
 <Image
-    src="/path/to/image.jpg"
-    alt="Description"
-    width={500}
-    height={300}
-    priority
+  source={{ uri }}
+  placeholder={blurhash}
+  contentFit="cover"
+  transition={1000}
 />
 ```
 
 ## 5. 技術選定の理由
 
-### Next.js 15を選択した理由
+### Expo SDK 53を選択した理由
 
-- App Routerによるモダンなルーティング
-- Server ComponentsとClient Componentsの使い分け
-- ビルトインのAPI Routes
-- 優れたパフォーマンス最適化
+- React Nativeの設定の複雑さを軽減
+- OTAアップデート機能
+- 豊富なネイティブAPIへの簡単なアクセス
+- EAS Buildによる効率的なビルドプロセス
 
-### Tailwind CSS 4を選択した理由
+### NativeWindを選択した理由
 
-- ユーティリティファーストの開発効率
+- Tailwind CSSの開発効率をReact Nativeで実現
 - 一貫性のあるデザインシステム
 - レスポンシブデザインの簡単な実装
 - ダークモード対応の容易さ
@@ -154,26 +147,19 @@ import Image from 'next/image'
 - 動的インポートの使用
 - 不要な依存関係の削除
 
-```typescript
-// 動的インポート
-const DynamicComponent = dynamic(() => import('./HeavyComponent'), {
-    loading: () => <p>Loading...</p>,
-})
-```
-
 ### 実行時パフォーマンス
 
 - React.memoの適切な使用
 - useMemo/useCallbackの活用
-- Server Componentsの活用
+- 仮想化リストの実装
 
 ## 8. 将来の技術選定候補
 
 ### 検討中の技術
 
-- **React Server Components** - さらなる最適化
+- **Expo Router v4** - より高度なルーティング機能
+- **Tamagui** - パフォーマンス重視のUIライブラリ
 - **tRPC** - 型安全なAPI通信
-- **Turborepo** - モノレポ管理
 
 ### 導入基準
 

@@ -9,20 +9,21 @@
 - API設計 → [`api-design.md`](./api-design.md)
 - データベース → [`database.md`](./database.md)
 - ベストプラクティス → [`best-practices.md`](./best-practices.md)
+- ローディング戦略 → [`loading-strategy.md`](./loading-strategy.md)
 
 ## 🔴 MUST - 絶対に守るべきルール
 
 ### 1. スタイリング
 
-- ❌ **禁止**: インラインstyle属性
-- ✅ **必須**: Tailwind CSSクラスのみ使用
+- ❌ **禁止**: StyleSheet.create(), インラインstyle属性
+- ✅ **必須**: NativeWind/Tailwindクラスのみ使用
 
 ```tsx
 // ❌ 禁止
-<div style={{ padding: '16px' }} />
+<View style={{ padding: 16 }} />
 
 // ✅ 正しい
-<div className="p-4" />
+<View className="p-4" />
 ```
 
 ### 2. 条件分岐
@@ -59,16 +60,18 @@ return <Content />
 
 ### 6. エラーハンドリング
 
-- ✅ **必須**: try-catchとErrorBoundaryの適切な使用
-- ✅ **必須**: ユーザーフレンドリーなエラーメッセージ
+- ❌ **禁止**: throw errorによるクラッシュリスク
+- ✅ **必須**: Result型パターン + ErrorBoundary
 
 ```tsx
+// ❌ 禁止
+if (!result.success) {
+    throw new Error('Failed')
+}
+
 // ✅ 正しい
-try {
-    await apiCall()
-} catch (error) {
-    // エラーハンドリング
-    showToast({ type: 'error', message: 'エラーが発生しました' })
+if (!result.success || !result.data) {
+    return null // エラーはモーダル自動表示
 }
 ```
 
@@ -76,21 +79,26 @@ try {
 
 ```
 /
-├── src/
-│   ├── app/                # Next.js App Router
-│   │   ├── (with-layout)/  # レイアウトグループ
-│   │   └── api/           # API Routes
-│   ├── components/        # 再利用可能コンポーネント
-│   ├── hooks/             # カスタムフック
-│   ├── contexts/          # コンテキスト
-│   ├── lib/               # ユーティリティ
-│   ├── actions/           # Server Actions
-│   └── models/            # データモデル
-├── public/                # 静的ファイル
+├── app/                # Expo Routerルート
+│   ├── (tabs)/        # タブナビゲーション
+│   ├── sample/        # サンプル画面
+│   └── _layout.tsx    # ルートレイアウト
+├── src/               # ソースコード
+│   ├── components/    # 再利用可能コンポーネント
+│   ├── hooks/         # カスタムフック
+│   ├── contexts/      # コンテキスト
+│   ├── lib/           # ユーティリティ
+│   ├── constants/     # 定数定義
+│   └── screens/       # 画面機能
+│       └── sample/    # サンプル画面機能
+├── api/               # API関連
+│   └── {resource-name}/ # 各リソースAPI
+├── db/                # データベース関連
+├── types/             # 型定義
 └── supabase/
     └── functions/
-        ├── _shared/       # 共通コード
-        └── {api-name}/    # 各APIエンドポイント
+        ├── _shared/   # 共通コード
+        └── {api-name}/ # 各APIエンドポイント
 ```
 
 ## 🏗️ アーキテクチャ原則
@@ -124,7 +132,7 @@ try {
 
 詳細は → [`coding-standards.md#エラーハンドリング`](./coding-standards.md)
 
-### バックエンド (Supabase Edge Functions)
+### バックエンド
 
 ```tsx
 // apiHandler + validatedApiHandlerパターン
@@ -155,6 +163,7 @@ app.post(
 - `api-design.md` - API設計ガイド
 - `coding-standards.md` - コーディング規約詳細
 - `database.md` - DB設計とマイグレーション
+- `loading-strategy.md` - ローディング戦略ガイドライン
 
 ---
 
