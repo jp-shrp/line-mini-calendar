@@ -274,11 +274,14 @@ export const createNotFoundError = (customMessage?: string) =>
 export const createValidationError = (details?: any, customMessage?: string) =>
     createApiError(
         ERROR_CODES.VALIDATION_ERROR,
-        400,
+        422,
         customMessage,
         undefined,
         details
     )
+
+export const createBadRequestError = (customMessage?: string) =>
+    createApiError(ERROR_CODES.INVALID_REQUEST, 400, customMessage)
 
 export const createInternalServerError = (
     customMessage?: string,
