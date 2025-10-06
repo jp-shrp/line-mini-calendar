@@ -45,15 +45,15 @@ export default async function SSRSamplePage() {
 
     return (
         <div className="container mx-auto p-8">
-            <h1 className="text-3xl font-bold mb-6">SSR Sample Page</h1>
+            <h1 className="mb-6 text-3xl font-bold">SSR Sample Page</h1>
 
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-                <h2 className="text-lg font-semibold mb-2">📖 使用例</h2>
+            <div className="mb-6 rounded-lg border border-blue-200 bg-blue-50 p-4">
+                <h2 className="mb-2 text-lg font-semibold">📖 使用例</h2>
                 <p className="text-sm text-gray-700">
                     このページはServer Component
                     (SSR)でsupabase.functions.invokeを使用してデータを取得しています。
                 </p>
-                <pre className="mt-3 p-3 bg-gray-800 text-white rounded text-xs overflow-x-auto">
+                <pre className="mt-3 overflow-x-auto rounded bg-gray-800 p-3 text-xs text-white">
                     {`const data = await supabaseApiClient.callEdgeFunction<UsersResponse>(
   async () => {
     return supabase.functions.invoke('samples-api/users', {
@@ -71,8 +71,8 @@ export default async function SSRSamplePage() {
             </div>
 
             <div className="mb-4">
-                <h2 className="text-xl font-semibold mb-3">ユーザー一覧</h2>
-                <p className="text-sm text-gray-600 mb-4">
+                <h2 className="mb-3 text-xl font-semibold">ユーザー一覧</h2>
+                <p className="mb-4 text-sm text-gray-600">
                     総件数: {data.pagination.total} 件 (ページ:{' '}
                     {data.pagination.page} / {data.pagination.totalPages})
                 </p>
@@ -82,17 +82,16 @@ export default async function SSRSamplePage() {
                 {data.users.map((user) => (
                     <div
                         key={user.id}
-                        className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
-                    >
+                        className="rounded-lg border border-gray-200 p-4 transition-shadow hover:shadow-md">
                         <div className="flex items-start gap-4">
                             {user.profileImage ? (
                                 <img
                                     src={user.profileImage}
                                     alt={user.name}
-                                    className="w-16 h-16 rounded-full object-cover"
+                                    className="h-16 w-16 rounded-full object-cover"
                                 />
                             ) : (
-                                <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center">
+                                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gray-200">
                                     <span className="text-2xl text-gray-500">
                                         {user.name.charAt(0).toUpperCase()}
                                     </span>
@@ -105,7 +104,7 @@ export default async function SSRSamplePage() {
                                 <p className="text-sm text-gray-600">
                                     {user.email}
                                 </p>
-                                <p className="text-xs text-gray-400 mt-1">
+                                <p className="mt-1 text-xs text-gray-400">
                                     ID: {user.id}
                                 </p>
                             </div>
@@ -115,7 +114,7 @@ export default async function SSRSamplePage() {
             </div>
 
             {data.users.length === 0 && (
-                <div className="text-center py-12 text-gray-500">
+                <div className="py-12 text-center text-gray-500">
                     <p>ユーザーが見つかりません</p>
                 </div>
             )}

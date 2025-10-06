@@ -23,12 +23,14 @@ export default function CSR500ErrorPage() {
     } | null>(null)
 
     // useSupabaseQueryを使用して500エラーを発生させる
-    const { data, isLoading, error, refetch } = useSupabaseQuery<ErrorResponse>({
-        queryKey: ['test-500-error'],
-        functionName: 'samples-api/error-test',
-        params: { errorType: '500' },
-        retry: false, // エラーテスト用なのでリトライしない
-    })
+    const { data, isLoading, error, refetch } = useSupabaseQuery<ErrorResponse>(
+        {
+            queryKey: ['test-500-error'],
+            functionName: 'samples-api/error-test',
+            params: { errorType: '500' },
+            retry: false, // エラーテスト用なのでリトライしない
+        }
+    )
 
     // callEdgeFunctionを直接使用して500エラーを発生させる
     const handleDirectCall = async () => {
@@ -53,12 +55,14 @@ export default function CSR500ErrorPage() {
         } catch (err) {
             console.error('500 Error caught:', err)
             setErrorDetails({
-                title: err && typeof err === 'object' && 'title' in err
-                    ? String(err.title)
-                    : '500 Internal Server Error',
-                message: err && typeof err === 'object' && 'message' in err
-                    ? String(err.message)
-                    : 'サーバー内部エラーが発生しました',
+                title:
+                    err && typeof err === 'object' && 'title' in err
+                        ? String(err.title)
+                        : '500 Internal Server Error',
+                message:
+                    err && typeof err === 'object' && 'message' in err
+                        ? String(err.message)
+                        : 'サーバー内部エラーが発生しました',
                 rawError: err,
             })
         }
@@ -66,54 +70,55 @@ export default function CSR500ErrorPage() {
 
     return (
         <div className="container mx-auto p-8">
-            <h1 className="text-3xl font-bold mb-6">500 Error Test Page</h1>
+            <h1 className="mb-6 text-3xl font-bold">500 Error Test Page</h1>
 
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-                <h2 className="text-lg font-semibold mb-2">🚨 テスト目的</h2>
-                <p className="text-sm text-gray-700 mb-3">
-                    このページは500エラー (Internal Server Error) が発生した際のエラーハンドリングを確認するためのテストページです。
+            <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4">
+                <h2 className="mb-2 text-lg font-semibold">🚨 テスト目的</h2>
+                <p className="mb-3 text-sm text-gray-700">
+                    このページは500エラー (Internal Server Error)
+                    が発生した際のエラーハンドリングを確認するためのテストページです。
                 </p>
                 <p className="text-sm text-gray-700">
-                    実際にEdge Functionから500エラーが返却された際に、どのようにエラーが表示されるかを確認できます。
+                    実際にEdge
+                    Functionから500エラーが返却された際に、どのようにエラーが表示されるかを確認できます。
                 </p>
             </div>
 
             {/* useSupabaseQuery によるエラーテスト */}
-            <div className="bg-white border border-gray-200 rounded-lg p-6 mb-6">
-                <h2 className="text-xl font-semibold mb-4">
+            <div className="mb-6 rounded-lg border border-gray-200 bg-white p-6">
+                <h2 className="mb-4 text-xl font-semibold">
                     1. useSupabaseQuery による500エラー
                 </h2>
-                <p className="text-sm text-gray-600 mb-4">
+                <p className="mb-4 text-sm text-gray-600">
                     React Queryのフックを使用して500エラーを発生させます。
                 </p>
 
                 <button
                     onClick={() => refetch()}
                     disabled={isLoading}
-                    className="bg-red-600 text-white rounded px-4 py-2 hover:bg-red-700 disabled:bg-gray-400 mb-4"
-                >
+                    className="mb-4 rounded bg-red-600 px-4 py-2 text-white hover:bg-red-700 disabled:bg-gray-400">
                     {isLoading ? 'リクエスト中...' : '500エラーを発生させる'}
                 </button>
 
                 {isLoading && (
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
                         <p className="text-sm text-blue-800">リクエスト中...</p>
                     </div>
                 )}
 
                 {error && (
-                    <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                        <h3 className="font-semibold text-red-800 mb-2">
+                    <div className="rounded-lg border border-red-200 bg-red-50 p-4">
+                        <h3 className="mb-2 font-semibold text-red-800">
                             {error.title || 'エラー'}
                         </h3>
-                        <p className="text-sm text-red-600 mb-2">
+                        <p className="mb-2 text-sm text-red-600">
                             {error.message || 'エラーが発生しました'}
                         </p>
                         <details className="mt-2">
-                            <summary className="text-xs text-red-500 cursor-pointer">
+                            <summary className="cursor-pointer text-xs text-red-500">
                                 詳細を表示
                             </summary>
-                            <pre className="mt-2 p-2 bg-red-100 rounded text-xs overflow-x-auto">
+                            <pre className="mt-2 overflow-x-auto rounded bg-red-100 p-2 text-xs">
                                 {JSON.stringify(error, null, 2)}
                             </pre>
                         </details>
@@ -121,11 +126,11 @@ export default function CSR500ErrorPage() {
                 )}
 
                 {data && (
-                    <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <div className="rounded-lg border border-green-200 bg-green-50 p-4">
                         <p className="text-sm text-green-800">
                             成功 (このメッセージは表示されないはずです)
                         </p>
-                        <pre className="mt-2 p-2 bg-green-100 rounded text-xs overflow-x-auto">
+                        <pre className="mt-2 overflow-x-auto rounded bg-green-100 p-2 text-xs">
                             {JSON.stringify(data, null, 2)}
                         </pre>
                     </div>
@@ -133,34 +138,33 @@ export default function CSR500ErrorPage() {
             </div>
 
             {/* callEdgeFunction による直接呼び出しテスト */}
-            <div className="bg-white border border-gray-200 rounded-lg p-6 mb-6">
-                <h2 className="text-xl font-semibold mb-4">
+            <div className="mb-6 rounded-lg border border-gray-200 bg-white p-6">
+                <h2 className="mb-4 text-xl font-semibold">
                     2. callEdgeFunction による500エラー
                 </h2>
-                <p className="text-sm text-gray-600 mb-4">
+                <p className="mb-4 text-sm text-gray-600">
                     callEdgeFunctionを直接使用して500エラーを発生させます。
                 </p>
 
                 <button
                     onClick={handleDirectCall}
-                    className="bg-purple-600 text-white rounded px-4 py-2 hover:bg-purple-700 mb-4"
-                >
+                    className="mb-4 rounded bg-purple-600 px-4 py-2 text-white hover:bg-purple-700">
                     500エラーを直接呼び出し
                 </button>
 
                 {errorDetails && (
-                    <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                        <h3 className="font-semibold text-red-800 mb-2">
+                    <div className="rounded-lg border border-red-200 bg-red-50 p-4">
+                        <h3 className="mb-2 font-semibold text-red-800">
                             {errorDetails.title || 'エラー'}
                         </h3>
-                        <p className="text-sm text-red-600 mb-2">
+                        <p className="mb-2 text-sm text-red-600">
                             {errorDetails.message || 'エラーが発生しました'}
                         </p>
                         <details className="mt-2">
-                            <summary className="text-xs text-red-500 cursor-pointer">
+                            <summary className="cursor-pointer text-xs text-red-500">
                                 詳細を表示
                             </summary>
-                            <pre className="mt-2 p-2 bg-red-100 rounded text-xs overflow-x-auto">
+                            <pre className="mt-2 overflow-x-auto rounded bg-red-100 p-2 text-xs">
                                 {JSON.stringify(errorDetails.rawError, null, 2)}
                             </pre>
                         </details>
@@ -169,16 +173,16 @@ export default function CSR500ErrorPage() {
             </div>
 
             {/* コード例 */}
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                <h2 className="text-lg font-semibold mb-2">📖 実装コード</h2>
+            <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+                <h2 className="mb-2 text-lg font-semibold">📖 実装コード</h2>
 
                 <div className="space-y-3">
                     <div>
-                        <h3 className="text-sm font-semibold mb-1">
+                        <h3 className="mb-1 text-sm font-semibold">
                             useSupabaseQuery での500エラー取得
                         </h3>
-                        <pre className="p-3 bg-gray-800 text-white rounded text-xs overflow-x-auto">
-{`const { error } = useSupabaseQuery<ErrorResponse>({
+                        <pre className="overflow-x-auto rounded bg-gray-800 p-3 text-xs text-white">
+                            {`const { error } = useSupabaseQuery<ErrorResponse>({
   queryKey: ['test-500-error'],
   functionName: 'samples-api/error-test',
   params: { errorType: '500' },
@@ -190,11 +194,11 @@ export default function CSR500ErrorPage() {
                     </div>
 
                     <div>
-                        <h3 className="text-sm font-semibold mb-1">
+                        <h3 className="mb-1 text-sm font-semibold">
                             callEdgeFunction での500エラー取得
                         </h3>
-                        <pre className="p-3 bg-gray-800 text-white rounded text-xs overflow-x-auto">
-{`try {
+                        <pre className="overflow-x-auto rounded bg-gray-800 p-3 text-xs text-white">
+                            {`try {
   await supabaseApiClient.callEdgeFunction(
     async () => {
       return supabase.functions.invoke('samples-api/error-test', {

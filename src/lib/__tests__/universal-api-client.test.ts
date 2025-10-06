@@ -8,7 +8,7 @@ import {
     safeParallelExecute,
     setApiClientConfig,
     UniversalApiClient,
-} from '@/lib/universal-api-client'
+} from '@/src/lib/universal-api-client'
 
 // js-cookieのモック
 jest.mock('js-cookie', () => ({
