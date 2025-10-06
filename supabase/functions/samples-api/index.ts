@@ -4,6 +4,7 @@ import {
     initApi,
     type Variables,
     createValidationError,
+    createBadRequestError,
     createInternalServerError,
 } from '../_shared/middlewares/middleware.ts'
 
@@ -37,6 +38,53 @@ app.get(
         throw createInternalServerError(
             'これはテスト用の500エラーです。システムエラーをシミュレートしています。'
         )
+    })
+)
+
+// GETリクエストで動的にエラータイプを指定できるエンドポイント
+app.get(
+    '/error-test',
+    apiHandler(async (c) => {
+        const errorType = c.req.query('errorType')
+
+        if (errorType === '400') {
+            throw createBadRequestError(
+                'これはテスト用の400エラーです。不正なリクエストをシミュレートしています。'
+            )
+        } else if (errorType === '500') {
+            throw createInternalServerError(
+                'これはテスト用の500エラーです。システムエラーをシミュレートしています。'
+            )
+        }
+
+        return c.json({
+            message: 'エラーテスト用エンドポイントです',
+            errorType: errorType || 'none',
+        })
+    })
+)
+
+// POSTリクエストで動的にエラータイプを指定できるエンドポイント
+app.post(
+    '/error-test',
+    apiHandler(async (c) => {
+        const body = await c.req.json()
+        const { errorType } = body
+
+        if (errorType === '400') {
+            throw createBadRequestError(
+                'これはテスト用の400エラーです。不正なリクエストをシミュレートしています。'
+            )
+        } else if (errorType === '500') {
+            throw createInternalServerError(
+                'これはテスト用の500エラーです。システムエラーをシミュレートしています。'
+            )
+        }
+
+        return c.json({
+            message: 'エラーテスト用エンドポイントです',
+            errorType: errorType || 'none',
+        })
     })
 )
 

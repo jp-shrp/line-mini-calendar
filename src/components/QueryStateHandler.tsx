@@ -1,7 +1,7 @@
 'use client'
 
-import { useModal } from '@/contexts/ModalContext'
-import { useOnLoading } from '@/contexts/OnLoadingContext'
+import { useModal } from '@/src/contexts/ModalContext'
+import { useOnLoading } from '@/src/contexts/OnLoadingContext'
 import { ReactNode, useEffect } from 'react'
 
 interface QueryStateHandlerProps<T> {

@@ -10,7 +10,7 @@
         "drizzle-orm/pg-core": "npm:drizzle-orm/pg-core",
         "drizzle-orm/postgres-js": "npm:drizzle-orm/postgres-js",
         "postgres": "npm:postgres",
-        "zod": "npm:zod@^3.22.4",
+        "zod": "https://deno.land/x/zod@v3.24.2/mod.ts",
         "supabase": "npm:@supabase/supabase-js@^2.39.3",
         "supabase_gotrue-js": "https://deno.land/x/gotrue@3.0.0/mod.ts",
         "_shared/schemas": "./supabase/functions/_shared/schemas/index.ts",
