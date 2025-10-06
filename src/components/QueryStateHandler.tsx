@@ -2,6 +2,7 @@
 
 import { useModal } from '@/src/contexts/ModalContext'
 import { useOnLoading } from '@/src/contexts/OnLoadingContext'
+import { StandardApiError } from '@/src/types/api'
 import { ReactNode, useEffect } from 'react'
 
 interface QueryStateHandlerProps<T> {
@@ -10,7 +11,7 @@ interface QueryStateHandlerProps<T> {
     /** ローディング状態 */
     isLoading: boolean
     /** エラー */
-    error?: Error | null
+    error?: Error | StandardApiError | null
     /** 新規作成モードかどうか */
     isNewMode?: boolean
     /** ローディング時のUIカスタマイズ */
@@ -60,13 +61,21 @@ export function QueryStateHandler<T>({
         if (error && !suppressErrorThrow) {
             setLoading(false)
 
+            // StandardApiError or Error
+            const isStandardApiError = 'status' in error && 'title' in error
+            const errorStatus = isStandardApiError
+                ? (error as StandardApiError).status
+                : (error as any)?.status
+            const errorMessage = isStandardApiError
+                ? (error as StandardApiError).message
+                : (error as Error).message
+
             // 400, 422, 404エラーの場合はthrowして上位で処理
-            const errorStatus = (error as any)?.status
             if (
                 errorStatus === 422 ||
                 errorStatus === 404 ||
-                error.message.includes('422') ||
-                error.message.includes('404')
+                errorMessage.includes('422') ||
+                errorMessage.includes('404')
             ) {
                 throw error
             }
@@ -74,7 +83,7 @@ export function QueryStateHandler<T>({
             // その他のエラーはモーダルで表示
             openModal({
                 title: 'エラーが発生しました',
-                content: error.message || '予期しないエラーが発生しました',
+                content: errorMessage || '予期しないエラーが発生しました',
                 type: 'error',
             })
         }
@@ -113,13 +122,17 @@ export function QueryStateHandler<T>({
         if (errorComponent) {
             return <>{errorComponent}</>
         }
+        const isStandardApiError = 'status' in error && 'title' in error
+        const errorMessage = isStandardApiError
+            ? (error as StandardApiError).message
+            : (error as Error).message
         return (
             <div className="text-center">
                 <div className="mb-4 text-lg text-red-600">
                     エラーが発生しました
                 </div>
                 <div className="text-gray-600">
-                    {error.message || '読み込みに失敗しました'}
+                    {errorMessage || '読み込みに失敗しました'}
                 </div>
             </div>
         )
