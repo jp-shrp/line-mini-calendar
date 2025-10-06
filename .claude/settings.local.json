@@ -68,7 +68,9 @@
       "mcp__serena__insert_before_symbol",
       "mcp__playwright__browser_install",
       "mcp__playwright__browser_network_requests",
-      "mcp__playwright__browser_console_messages"
+      "mcp__playwright__browser_console_messages",
+      "Bash(tsc --noEmit)",
+      "Bash(git log:*)"
     ],
     "deny": [],
     "ask": []

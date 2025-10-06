@@ -35,7 +35,10 @@ class SupabaseApiClient {
                     // Supabaseクライアントがエラー時にボディを読み取っていない可能性を考慮
 
                     // まず、error.contextをチェック
-                    if (response.error.context && Object.keys(response.error.context).length > 0) {
+                    if (
+                        response.error.context &&
+                        Object.keys(response.error.context).length > 0
+                    ) {
                         errorBody = response.error.context
                     }
                     // 次に、response.error.messageがJSON文字列かチェック
@@ -51,15 +54,24 @@ class SupabaseApiClient {
                         // ただし、既に消費されている場合は失敗する
                         try {
                             const responseClone = httpResponse.clone?.()
-                            if (responseClone && typeof responseClone.text === 'function') {
+                            if (
+                                responseClone &&
+                                typeof responseClone.text === 'function'
+                            ) {
                                 const bodyText = await responseClone.text()
-                                if (bodyText && bodyText.trim().startsWith('{')) {
+                                if (
+                                    bodyText &&
+                                    bodyText.trim().startsWith('{')
+                                ) {
                                     errorBody = JSON.parse(bodyText)
                                 }
                             }
                         } catch (cloneError) {
                             // clone/text読み取りに失敗した場合は無視
-                            console.log('Failed to read response body:', cloneError)
+                            console.log(
+                                'Failed to read response body:',
+                                cloneError
+                            )
                         }
                     }
                 } catch (parseError) {

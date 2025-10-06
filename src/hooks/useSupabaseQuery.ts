@@ -17,14 +17,23 @@ export interface UseSupabaseQueryOptions<TData = any>
     functionName: string
     params?: Record<string, any>
     edgeOptions?: EdgeFunctionOptions
+    /**
+     * エラーモーダルの自動表示を抑制するかどうか
+     * trueの場合、エラーが発生してもモーダルは表示されません
+     * デフォルト: false（モーダル表示する）
+     */
+    suppressErrorModal?: boolean
 }
 
 /**
  * Supabase Edge FunctionsからデータをfetchするReact Queryフック
  *
+ * エラーは自動的にグローバルエラーハンドラーでモーダル表示されます。
+ * 422バリデーションエラーは個別処理が必要な場合にのみonErrorオプションを使用してください。
+ *
  * @example
- * // 基本的な使い方
- * const { data, isLoading, error } = useSupabaseQuery({
+ * // 基本的な使い方（エラーは自動でモーダル表示）
+ * const { data, isLoading } = useSupabaseQuery({
  *   queryKey: ['users'],
  *   functionName: 'samples-api/users',
  * })
@@ -38,15 +47,23 @@ export interface UseSupabaseQueryOptions<TData = any>
  * })
  *
  * @example
- * // カスタムエラーハンドリング
+ * // エラーモーダルを表示せず、自分でエラー処理する場合
  * const { data, error } = useSupabaseQuery({
  *   queryKey: ['users'],
  *   functionName: 'samples-api/users',
+ *   suppressErrorModal: true, // モーダル表示を抑制
  * })
  *
- * if (error) {
- *   // エラー処理
- * }
+ * @example
+ * // カスタムエラーハンドリング（モーダルも表示される）
+ * const { data } = useSupabaseQuery({
+ *   queryKey: ['users'],
+ *   functionName: 'samples-api/users',
+ *   onError: (error) => {
+ *     // カスタム処理
+ *     // グローバルエラーハンドラーも実行されます
+ *   }
+ * })
  */
 export function useSupabaseQuery<TData = any>({
     queryKey,
@@ -54,6 +71,7 @@ export function useSupabaseQuery<TData = any>({
     params,
     edgeOptions,
     enabled = true,
+    suppressErrorModal = false,
     ...queryOptions
 }: UseSupabaseQueryOptions<TData>) {
     // GETの場合、paramsをクエリストリングに変換
@@ -65,16 +83,16 @@ export function useSupabaseQuery<TData = any>({
         queryKey,
         queryFn: async () => {
             const supabase = createSupabaseClient()
-            return await supabaseApiClient.callEdgeFunction<TData>(
-                async () => {
-                    return supabase.functions.invoke(functionNameWithParams, {
-                        method: 'GET',
-                    })
-                },
-                edgeOptions
-            )
+            return await supabaseApiClient.callEdgeFunction<TData>(async () => {
+                return supabase.functions.invoke(functionNameWithParams, {
+                    method: 'GET',
+                })
+            }, edgeOptions)
         },
         enabled,
+        meta: {
+            suppressErrorModal,
+        },
         ...queryOptions,
     })
 }

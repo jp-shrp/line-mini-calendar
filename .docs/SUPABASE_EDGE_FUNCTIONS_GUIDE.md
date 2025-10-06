@@ -19,18 +19,18 @@ Edge Function を呼び出す際は、`callEdgeFunction` を使用します。�
 
 ```ts
 const result = await supabaseApiClient.callEdgeFunction<ResponseType>(
-  async () => {
-    return supabase.functions.invoke('function-name', {
-      method: 'POST',
-      body: data,
-    })
-  },
-  {
-    error: {
-      title: 'エラータイトル',
-      message: 'エラーメッセージ',
+    async () => {
+        return supabase.functions.invoke('function-name', {
+            method: 'POST',
+            body: data,
+        })
     },
-  }
+    {
+        error: {
+            title: 'エラータイトル',
+            message: 'エラーメッセージ',
+        },
+    }
 )
 ```
 
@@ -52,36 +52,36 @@ const supabase = createSupabaseClient()
 
 // GET リクエスト
 const users = await supabaseApiClient.callEdgeFunction<UsersResponse>(
-  async () => {
-    return supabase.functions.invoke('samples-api/users', {
-      method: 'GET',
-    })
-  },
-  {
-    error: {
-      title: 'ユーザー取得エラー',
-      message: 'ユーザー一覧の取得に失敗しました',
+    async () => {
+        return supabase.functions.invoke('samples-api/users', {
+            method: 'GET',
+        })
     },
-  }
+    {
+        error: {
+            title: 'ユーザー取得エラー',
+            message: 'ユーザー一覧の取得に失敗しました',
+        },
+    }
 )
 
 // POST リクエスト
 const newUser = await supabaseApiClient.callEdgeFunction<UserResponse>(
-  async () => {
-    return supabase.functions.invoke('samples-api/users', {
-      method: 'POST',
-      body: {
-        name: '太郎',
-        email: 'taro@example.com',
-      },
-    })
-  },
-  {
-    error: {
-      title: 'ユーザー作成エラー',
-      message: 'ユーザーの作成に失敗しました',
+    async () => {
+        return supabase.functions.invoke('samples-api/users', {
+            method: 'POST',
+            body: {
+                name: '太郎',
+                email: 'taro@example.com',
+            },
+        })
     },
-  }
+    {
+        error: {
+            title: 'ユーザー作成エラー',
+            message: 'ユーザーの作成に失敗しました',
+        },
+    }
 )
 ```
 
@@ -97,44 +97,44 @@ import { createSupabaseClient } from '@/db/supabase'
 import { supabaseApiClient } from '@/src/lib/supabase-api-client'
 
 interface User {
-  id: string
-  name: string
-  email: string
+    id: string
+    name: string
+    email: string
 }
 
 interface UsersResponse {
-  users: User[]
+    users: User[]
 }
 
 export default async function SSRPage() {
-  const supabase = createSupabaseClient()
+    const supabase = createSupabaseClient()
 
-  const data = await supabaseApiClient.callEdgeFunction<UsersResponse>(
-    async () => {
-      return supabase.functions.invoke('samples-api/users', {
-        method: 'GET',
-      })
-    },
-    {
-      error: {
-        title: 'ユーザー取得エラー',
-        message: 'ユーザー一覧の取得に失敗しました',
-      },
-    }
-  )
+    const data = await supabaseApiClient.callEdgeFunction<UsersResponse>(
+        async () => {
+            return supabase.functions.invoke('samples-api/users', {
+                method: 'GET',
+            })
+        },
+        {
+            error: {
+                title: 'ユーザー取得エラー',
+                message: 'ユーザー一覧の取得に失敗しました',
+            },
+        }
+    )
 
-  return (
-    <div>
-      <h1>ユーザー一覧</h1>
-      <ul>
-        {data.users.map((user) => (
-          <li key={user.id}>
-            {user.name} ({user.email})
-          </li>
-        ))}
-      </ul>
-    </div>
-  )
+    return (
+        <div>
+            <h1>ユーザー一覧</h1>
+            <ul>
+                {data.users.map((user) => (
+                    <li key={user.id}>
+                        {user.name} ({user.email})
+                    </li>
+                ))}
+            </ul>
+        </div>
+    )
 }
 ```
 
@@ -156,31 +156,33 @@ Client Component (CSR) では、React Query のカスタムフック `useSupabas
 import { useSupabaseQuery } from '@/src/hooks/useSupabaseQuery'
 
 interface UsersResponse {
-  users: User[]
+    users: User[]
 }
 
 export default function CSRPage() {
-  const { data, isLoading, error, refetch } = useSupabaseQuery<UsersResponse>({
-    queryKey: ['users'],
-    functionName: 'samples-api/users',
-  })
+    const { data, isLoading, error, refetch } = useSupabaseQuery<UsersResponse>(
+        {
+            queryKey: ['users'],
+            functionName: 'samples-api/users',
+        }
+    )
 
-  if (isLoading) return <div>読み込み中...</div>
-  if (error) return <div>エラー: {error.message}</div>
+    if (isLoading) return <div>読み込み中...</div>
+    if (error) return <div>エラー: {error.message}</div>
 
-  return (
-    <div>
-      <h1>ユーザー一覧</h1>
-      <button onClick={() => refetch()}>再読込</button>
-      <ul>
-        {data?.users.map((user) => (
-          <li key={user.id}>
-            {user.name} ({user.email})
-          </li>
-        ))}
-      </ul>
-    </div>
-  )
+    return (
+        <div>
+            <h1>ユーザー一覧</h1>
+            <button onClick={() => refetch()}>再読込</button>
+            <ul>
+                {data?.users.map((user) => (
+                    <li key={user.id}>
+                        {user.name} ({user.email})
+                    </li>
+                ))}
+            </ul>
+        </div>
+    )
 }
 ```
 
@@ -192,30 +194,32 @@ export default function CSRPage() {
 import { useSupabaseMutation } from '@/src/hooks/useSupabaseMutation'
 
 export default function CSRPage() {
-  const createUserMutation = useSupabaseMutation<
-    { user: User },
-    { name: string; email: string }
-  >({
-    functionName: 'samples-api/users',
-    method: 'POST',
-    invalidateQueries: ['users'], // 成功時に再取得するクエリ
-    onSuccess: (data) => {
-      console.log('ユーザー作成成功:', data)
-    },
-  })
-
-  const handleCreateUser = () => {
-    createUserMutation.mutate({
-      name: '太郎',
-      email: 'taro@example.com',
+    const createUserMutation = useSupabaseMutation<
+        { user: User },
+        { name: string; email: string }
+    >({
+        functionName: 'samples-api/users',
+        method: 'POST',
+        invalidateQueries: ['users'], // 成功時に再取得するクエリ
+        onSuccess: (data) => {
+            console.log('ユーザー作成成功:', data)
+        },
     })
-  }
 
-  return (
-    <button onClick={handleCreateUser} disabled={createUserMutation.isPending}>
-      {createUserMutation.isPending ? '作成中...' : 'ユーザー作成'}
-    </button>
-  )
+    const handleCreateUser = () => {
+        createUserMutation.mutate({
+            name: '太郎',
+            email: 'taro@example.com',
+        })
+    }
+
+    return (
+        <button
+            onClick={handleCreateUser}
+            disabled={createUserMutation.isPending}>
+            {createUserMutation.isPending ? '作成中...' : 'ユーザー作成'}
+        </button>
+    )
 }
 ```
 
@@ -230,30 +234,31 @@ import { createSupabaseClient } from '@/db/supabase'
 import { supabaseApiClient } from '@/src/lib/supabase-api-client'
 
 export default function CSRPage() {
-  const handleFetchUsers = async () => {
-    const supabase = createSupabaseClient()
+    const handleFetchUsers = async () => {
+        const supabase = createSupabaseClient()
 
-    try {
-      const result = await supabaseApiClient.callEdgeFunction<UsersResponse>(
-        async () => {
-          return supabase.functions.invoke('samples-api/users', {
-            method: 'GET',
-          })
-        },
-        {
-          error: {
-            title: 'データ取得エラー',
-            message: 'データの取得に失敗しました',
-          },
+        try {
+            const result =
+                await supabaseApiClient.callEdgeFunction<UsersResponse>(
+                    async () => {
+                        return supabase.functions.invoke('samples-api/users', {
+                            method: 'GET',
+                        })
+                    },
+                    {
+                        error: {
+                            title: 'データ取得エラー',
+                            message: 'データの取得に失敗しました',
+                        },
+                    }
+                )
+            console.log('取得成功:', result)
+        } catch (err) {
+            console.error('エラー:', err)
         }
-      )
-      console.log('取得成功:', result)
-    } catch (err) {
-      console.error('エラー:', err)
     }
-  }
 
-  return <button onClick={handleFetchUsers}>ユーザー取得</button>
+    return <button onClick={handleFetchUsers}>ユーザー取得</button>
 }
 ```
 
@@ -271,11 +276,11 @@ export default function CSRPage() {
 
 ```ts
 interface StandardApiError {
-  title: string
-  message: string
-  code: string
-  status: number
-  details?: any
+    title: string
+    message: string
+    code: string
+    status: number
+    details?: any
 }
 ```
 
@@ -285,18 +290,18 @@ interface StandardApiError {
 
 ```ts
 const result = await supabaseApiClient.callEdgeFunction<ResponseType>(
-  async () => {
-    return supabase.functions.invoke('function-name', {
-      method: 'POST',
-      body: data,
-    })
-  },
-  {
-    error: {
-      title: 'カスタムエラータイトル', // エラー時のタイトル
-      message: 'カスタムエラーメッセージ', // エラー時のメッセージ
+    async () => {
+        return supabase.functions.invoke('function-name', {
+            method: 'POST',
+            body: data,
+        })
     },
-  }
+    {
+        error: {
+            title: 'カスタムエラータイトル', // エラー時のタイトル
+            message: 'カスタムエラーメッセージ', // エラー時のメッセージ
+        },
+    }
 )
 ```
 
@@ -330,11 +335,11 @@ src/
 
 ## まとめ
 
-| パターン                 | 用途               | 主なメリット           |
-| ------------------------ | ------------------ | ---------------------- |
-| SSR (Server Component)   | 初期表示、SEO 対応 | 高速、SEO フレンドリー |
-| CSR (useSupabaseQuery)   | データ取得         | キャッシュ、自動再取得 |
+| パターン                  | 用途               | 主なメリット           |
+| ------------------------- | ------------------ | ---------------------- |
+| SSR (Server Component)    | 初期表示、SEO 対応 | 高速、SEO フレンドリー |
+| CSR (useSupabaseQuery)    | データ取得         | キャッシュ、自動再取得 |
 | CSR (useSupabaseMutation) | データ更新         | 楽観的 UI、自動更新    |
-| CSR (callEdgeFunction)   | カスタム処理       | 柔軟性が高い           |
+| CSR (callEdgeFunction)    | カスタム処理       | 柔軟性が高い           |
 
 プロジェクトの要件に応じて、適切なパターンを選択してください。

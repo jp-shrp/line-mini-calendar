@@ -27,6 +27,12 @@ export interface UseSupabaseMutationOptions<TData = any, TVariables = any>
     method?: 'POST' | 'PUT' | 'PATCH' | 'DELETE'
     edgeOptions?: EdgeFunctionOptions
     invalidateQueries?: string[]
+    /**
+     * エラーモーダルの自動表示を抑制するかどうか
+     * trueの場合、エラーが発生してもモーダルは表示されません
+     * デフォルト: false（モーダル表示する）
+     */
+    suppressErrorModal?: boolean
 }
 
 /**
@@ -41,6 +47,12 @@ export interface UseSupabaseMutationFormOptions<TData = any, TForm = any>
     method?: 'POST' | 'PUT' | 'PATCH' | 'DELETE'
     edgeOptions?: EdgeFunctionOptions
     invalidateQueries?: string[]
+    /**
+     * エラーモーダルの自動表示を抑制するかどうか
+     * trueの場合、エラーが発生してもモーダルは表示されません（422エラーは常にフォームにセット）
+     * デフォルト: false（モーダル表示する）
+     */
+    suppressErrorModal?: boolean
 }
 
 /**
@@ -83,11 +95,15 @@ export function useSupabaseMutation<TData = any, TVariables = any>(
             method = 'POST',
             edgeOptions,
             invalidateQueries = [],
+            suppressErrorModal = false,
             ...mutationOptions
         } = formOptions
 
         return useMutation({
             ...mutationOptions,
+            meta: {
+                suppressErrorModal,
+            },
             mutationFn: async (variables: any) => {
                 const supabase = createSupabaseClient()
                 return await supabaseApiClient.callEdgeFunction<TData>(
@@ -120,7 +136,7 @@ export function useSupabaseMutation<TData = any, TVariables = any>(
                 }
             },
             onError: (error: StandardApiError, variables, context) => {
-                // バリデーションエラーの場合、フォームにエラーをセット
+                // バリデーションエラー(422)の場合、フォームにエラーをセット
                 if (isValidationError(error)) {
                     const validationErrors = extractValidationErrors(error)
 
@@ -132,6 +148,7 @@ export function useSupabaseMutation<TData = any, TVariables = any>(
                         })
                     })
                 }
+                // 422以外のエラーはグローバルエラーハンドラーで自動的にモーダル表示される
 
                 if (mutationOptions.onError) {
                     ;(mutationOptions.onError as any)(error, variables, context)
@@ -145,11 +162,15 @@ export function useSupabaseMutation<TData = any, TVariables = any>(
             method = 'POST',
             edgeOptions,
             invalidateQueries = [],
+            suppressErrorModal = false,
             ...mutationOptions
         } = formOrOptions as UseSupabaseMutationOptions<TData, TVariables>
 
         return useMutation({
             ...mutationOptions,
+            meta: {
+                suppressErrorModal,
+            },
             mutationFn: async (variables: TVariables) => {
                 const supabase = createSupabaseClient()
                 return await supabaseApiClient.callEdgeFunction<TData>(
@@ -181,6 +202,8 @@ export function useSupabaseMutation<TData = any, TVariables = any>(
                     )
                 }
             },
+            // エラーは全てグローバルエラーハンドラーで自動的にモーダル表示される
+            // カスタムエラー処理が必要な場合はonErrorオプションを指定
         })
     }
 }
