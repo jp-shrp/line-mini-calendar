@@ -1,8 +1,18 @@
-import type { FC } from 'react'
+'use client'
 
+import type { FC } from 'react'
+import { useRouter } from 'next/navigation'
+
+/**
+ * 新規イベント登録ボタンコンポーネント
+ * @description
+ * クリック時に/calendar/newページに遷移します
+ */
 const NewEventButton: FC = () => {
+    const router = useRouter()
+
     const handleClick = () => {
-        // 新規登録処理（今後実装）
+        router.push('/calendar/new')
     }
 
     return (
