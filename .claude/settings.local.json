@@ -72,7 +72,8 @@
             "Bash(tsc --noEmit)",
             "Bash(git log:*)",
             "mcp__serena__think_about_task_adherence",
-            "Bash(git rev-parse:*)"
+            "Bash(git rev-parse:*)",
+            "mcp__ide__getDiagnostics"
         ],
         "deny": [],
         "ask": []
