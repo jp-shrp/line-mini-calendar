@@ -6,15 +6,24 @@ import {
     validatedApiHandler,
     type Variables,
 } from '_shared/middlewares/middleware'
-import { createEvent, getEvents } from '_shared/services/eventService'
+import {
+    createEvent,
+    deleteEvent,
+    getEvents,
+    updateEvent,
+} from '_shared/services/eventService'
 import { getPaginationInfoFromRequest } from '_shared/paginationUtility'
 import { SuccessResponse } from '_shared/types/responses'
 import type { SelectUser } from '_shared/schemas/users'
 import type {
     EventsListResponse,
     EventDetailResponse,
+    CreateEventInput,
 } from '_shared/types/events-api-types'
-import { createEventSchema } from '_shared/validations/eventsValidation'
+import {
+    createEventSchema,
+    updateEventSchema,
+} from '_shared/validations/eventsValidation'
 
 // 型拡張 - Honoのコンテキストにユーザー情報を追加
 export type CalendarVariables = Variables & {
@@ -90,7 +99,7 @@ app.post(
         const user = c.get('user') as SelectUser
 
         // イベント作成
-        const eventData = {
+        const eventData: CreateEventInput = {
             title: validatedData.title,
             description: validatedData.description,
             category: validatedData.category,
@@ -110,6 +119,90 @@ app.post(
             new SuccessResponse({
                 data: response,
                 message: 'イベントを作成しました',
+            })
+        )
+    })
+)
+
+/**
+ * イベント更新API
+ * PUT /calendar-api/events/:id
+ */
+app.put(
+    '/events/:id',
+    authMiddleware,
+    validatedApiHandler(updateEventSchema, async (c, validatedData) => {
+        const user = c.get('user') as SelectUser
+        const eventId = c.req.param('id')
+
+        // イベント更新データの準備
+        const updateData: {
+            title?: string
+            description?: string
+            category?: string
+            iconUrl?: string
+            startDatetime?: Date
+            endDatetime?: Date
+            color?: string
+        } = {}
+
+        if (validatedData.title !== undefined) {
+            updateData.title = validatedData.title
+        }
+        if (validatedData.description !== undefined) {
+            updateData.description = validatedData.description
+        }
+        if (validatedData.category !== undefined) {
+            updateData.category = validatedData.category
+        }
+        if (validatedData.iconUrl !== undefined) {
+            updateData.iconUrl = validatedData.iconUrl
+        }
+        if (validatedData.startDatetime !== undefined) {
+            updateData.startDatetime = new Date(validatedData.startDatetime)
+        }
+        if (validatedData.endDatetime !== undefined) {
+            updateData.endDatetime = new Date(validatedData.endDatetime)
+        }
+        if (validatedData.color !== undefined) {
+            updateData.color = validatedData.color
+        }
+
+        // イベント更新
+        const updatedEvent = await updateEvent(eventId, user.id, updateData)
+
+        // レスポンス作成
+        const response: EventDetailResponse = {
+            event: updatedEvent,
+        }
+
+        return c.json(
+            new SuccessResponse({
+                data: response,
+                message: 'イベントを更新しました',
+            })
+        )
+    })
+)
+
+/**
+ * イベント削除API（ソフトデリート）
+ * DELETE /calendar-api/events/:id
+ */
+app.delete(
+    '/events/:id',
+    authMiddleware,
+    apiHandler(async (c) => {
+        const user = c.get('user') as SelectUser
+        const eventId = c.req.param('id')
+
+        // イベント削除（ソフトデリート）
+        await deleteEvent(eventId, user.id)
+
+        return c.json(
+            new SuccessResponse({
+                data: { id: eventId },
+                message: 'イベントを削除しました',
             })
         )
     })
