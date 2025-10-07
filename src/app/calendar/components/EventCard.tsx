@@ -1,5 +1,5 @@
+import { Event } from '@/src/models/Event'
 import type { FC } from 'react'
-import type { Event } from '@/src/models/Event'
 
 interface EventCardProps {
     event: Event
@@ -14,7 +14,7 @@ const EventCard: FC<EventCardProps> = ({ event }) => {
                 <div>{event.endTime}</div>
             </div>
             <div
-                className={`flex flex-1 items-center gap-3 rounded-2xl ${event.color} p-4 text-white`}>
+                className={`flex flex-1 items-center gap-3 rounded-2xl ${event.colorClass} p-4 text-white`}>
                 {event.icon && (
                     <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-lg bg-white">
                         <span className="text-2xl">{event.icon}</span>
