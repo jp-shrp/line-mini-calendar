@@ -1,10 +1,10 @@
-import type { FC } from 'react'
-import type { useCalendar } from '@/src/app/calendar/hooks/useCalendar'
 import CalendarHeader from '@/src/app/calendar/components/CalendarHeader'
 import CalendarView from '@/src/app/calendar/components/CalendarView'
+import NewEventButton from '@/src/app/calendar/components/NewEventButton'
 import TodayEventList from '@/src/app/calendar/components/TodayEventList'
 import UpcomingEventList from '@/src/app/calendar/components/UpcomingEventList'
-import NewEventButton from '@/src/app/calendar/components/NewEventButton'
+import type { useCalendar } from '@/src/app/calendar/hooks/useCalendar'
+import type { FC } from 'react'
 
 const MainView: FC<ReturnType<typeof useCalendar>> = ({
     selectedDate,

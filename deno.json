@@ -40,6 +40,7 @@
         "_shared/types/users-api-types": "./supabase/functions/_shared/types/users-api-types.ts",
         "_shared/types/events-api-types": "./supabase/functions/_shared/types/events-api-types.ts",
         "_shared/types/categories-api-types": "./supabase/functions/_shared/types/categories-api-types.ts",
-        "_shared/clientAdmin": "./supabase/functions/_shared/clientAdmin.ts"
+        "_shared/clientAdmin": "./supabase/functions/_shared/clientAdmin.ts",
+        "_shared/utils/date-utils": "./supabase/functions/_shared/utils/date-utils.ts"
     }
 }

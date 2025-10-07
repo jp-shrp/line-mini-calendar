@@ -38,6 +38,7 @@
         "_shared/types/users-api-types": "./_shared/types/users-api-types.ts",
         "_shared/types/events-api-types": "./_shared/types/events-api-types.ts",
         "_shared/types/categories-api-types": "./_shared/types/categories-api-types.ts",
-        "_shared/clientAdmin": "./_shared/clientAdmin.ts"
+        "_shared/clientAdmin": "./_shared/clientAdmin.ts",
+        "_shared/utils/date-utils": "./_shared/utils/date-utils.ts"
     }
 }

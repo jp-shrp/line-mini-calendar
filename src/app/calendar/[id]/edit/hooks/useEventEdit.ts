@@ -2,7 +2,7 @@ import { useCallback, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
-import { format } from 'date-fns'
+import { formatJST } from '@/src/lib/date-utils'
 import { updateEventSchema } from '@/supabase/functions/_shared/validations/eventsValidation'
 import type { UpdateEventFormData } from '@/src/app/calendar/api/event-mutation'
 import { useUpdateEventMutation } from '@/src/app/calendar/api/event-mutation'
@@ -48,8 +48,9 @@ export const useEventEdit = (eventId: string) => {
             const event = data.event
 
             // datetime-local形式に変換（YYYY-MM-DDTHH:mm）
+            // 日本時間に変換してからフォーマット
             const formatDatetimeLocal = (datetime: Date | string) => {
-                return format(new Date(datetime), "yyyy-MM-dd'T'HH:mm")
+                return formatJST(datetime, "yyyy-MM-dd'T'HH:mm")
             }
 
             form.reset({

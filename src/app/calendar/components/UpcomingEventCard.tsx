@@ -1,14 +1,14 @@
 import type { FC } from 'react'
-import type { UpcomingEvent } from '@/src/models/Event'
+import { Event } from '@/src/models/Event'
 
 interface UpcomingEventCardProps {
-    event: UpcomingEvent
+    event: Event
 }
 
 const UpcomingEventCard: FC<UpcomingEventCardProps> = ({ event }) => {
     return (
         <div
-            className={`flex items-center gap-4 rounded-2xl ${event.color} p-4 text-white`}>
+            className={`flex items-center gap-4 rounded-2xl ${event.colorClass} p-4 text-white`}>
             <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-lg bg-white">
                 <svg
                     className="h-6 w-6 text-purple-500"

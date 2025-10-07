@@ -1,9 +1,9 @@
 import type { FC } from 'react'
-import type { UpcomingEvent } from '@/src/models/Event'
+import { Event } from '@/src/models/Event'
 import UpcomingEventCard from '@/src/app/calendar/components/UpcomingEventCard'
 
 interface UpcomingEventListProps {
-    events: UpcomingEvent[]
+    events: Event[]
 }
 
 const UpcomingEventList: FC<UpcomingEventListProps> = ({ events }) => {

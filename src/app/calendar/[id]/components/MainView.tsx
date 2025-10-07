@@ -1,6 +1,5 @@
 import type { FC } from 'react'
-import { format } from 'date-fns'
-import { toZonedTime } from 'date-fns-tz'
+import { formatJST } from '@/src/lib/date-utils'
 import type { useEventDetail } from '../hooks/useEventDetail'
 
 type MainViewProps = ReturnType<typeof useEventDetail>
@@ -47,15 +46,8 @@ const MainView: FC<MainViewProps> = ({
         )
     }
 
-    // 日本時間（JST）に変換してフォーマット
-    const formatJSTDate = (datetime: Date | string) => {
-        const date = new Date(datetime)
-        const jstDate = toZonedTime(date, 'Asia/Tokyo')
-        return format(jstDate, 'yyyy/MM/dd HH:mm')
-    }
-
-    const startDate = formatJSTDate(event.startDatetime)
-    const endDate = formatJSTDate(event.endDatetime)
+    const startDate = formatJST(event.startDatetime)
+    const endDate = formatJST(event.endDatetime)
 
     return (
         <div className="min-h-screen bg-gray-50">

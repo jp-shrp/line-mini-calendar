@@ -2,74 +2,10 @@ import {
     useTodayEventsQuery,
     useUpcomingEventsQuery,
 } from '@/src/app/calendar/api/event-query'
-import type { Event, UpcomingEvent } from '@/src/models/Event'
+import { Event } from '@/src/models/Event'
 import { useCallback, useMemo, useState } from 'react'
 
 export type ViewMode = 'day' | 'week' | 'month'
-
-/**
- * APIイベントを画面表示用のEvent型に変換
- */
-const convertToEvent = (apiEvent: {
-    id: string
-    title: string
-    startDatetime: Date
-    endDatetime: Date
-    iconUrl: string | null
-    color: string | null
-}): Event => {
-    const startTime = new Date(apiEvent.startDatetime).toLocaleTimeString(
-        'ja-JP',
-        {
-            hour: '2-digit',
-            minute: '2-digit',
-        }
-    )
-    const endTime = new Date(apiEvent.endDatetime).toLocaleTimeString('ja-JP', {
-        hour: '2-digit',
-        minute: '2-digit',
-    })
-
-    return {
-        id: apiEvent.id,
-        title: apiEvent.title,
-        startTime,
-        endTime,
-        icon: apiEvent.iconUrl || undefined,
-        color: apiEvent.color || 'bg-gray-500',
-    }
-}
-
-/**
- * APIイベントを画面表示用のUpcomingEvent型に変換
- */
-const convertToUpcomingEvent = (apiEvent: {
-    id: string
-    title: string
-    startDatetime: Date
-    endDatetime: Date
-    color: string | null
-}): UpcomingEvent => {
-    const startTime = new Date(apiEvent.startDatetime).toLocaleTimeString(
-        'ja-JP',
-        {
-            hour: '2-digit',
-            minute: '2-digit',
-        }
-    )
-    const endTime = new Date(apiEvent.endDatetime).toLocaleTimeString('ja-JP', {
-        hour: '2-digit',
-        minute: '2-digit',
-    })
-
-    return {
-        id: apiEvent.id,
-        title: apiEvent.title,
-        startTime,
-        endTime,
-        color: apiEvent.color || 'bg-gray-500',
-    }
-}
 
 /**
  * カレンダー画面のビジネスロジックHook
@@ -94,14 +30,15 @@ export const useCalendar = () => {
         error: upcomingEventsError,
     } = useUpcomingEventsQuery(5)
 
-    // APIデータを画面表示用の型に変換
+    // APIデータをモデルクラスでマッピング
     const todayEvents = useMemo(
-        () => (todayEventsData?.events || []).map(convertToEvent),
+        () => (todayEventsData?.events || []).map((event) => new Event(event)),
         [todayEventsData]
     )
 
     const upcomingEvents = useMemo(
-        () => (upcomingEventsData?.events || []).map(convertToUpcomingEvent),
+        () =>
+            (upcomingEventsData?.events || []).map((event) => new Event(event)),
         [upcomingEventsData]
     )
 

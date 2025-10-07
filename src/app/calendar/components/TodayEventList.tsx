@@ -1,5 +1,5 @@
 import type { FC } from 'react'
-import type { Event } from '@/src/models/Event'
+import { Event } from '@/src/models/Event'
 import EventCard from '@/src/app/calendar/components/EventCard'
 
 interface TodayEventListProps {
