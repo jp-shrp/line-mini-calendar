@@ -21,7 +21,7 @@
         "_shared/schemas/categories": "./supabase/functions/_shared/schemas/categories.ts",
         "_shared/validations": "./supabase/functions/_shared/validations/index.ts",
         "_shared/validations/usersValidation": "./supabase/functions/_shared/validations/usersValidation.ts",
-        "_shared/validations/createUserValidation": "./supabase/functions/_shared/validations/createUserValidation.ts",
+        "_shared/validations/eventsValidation": "./supabase/functions/_shared/validations/eventsValidation.ts",
         "_shared/validations/samplesValidation": "./supabase/functions/_shared/validations/samplesValidation.ts",
         "_shared/validations/authValidation": "./supabase/functions/_shared/validations/authValidation.ts",
         "_shared/middlewares/middleware": "./supabase/functions/_shared/middlewares/middleware.ts",

@@ -20,7 +20,7 @@
         "_shared/schemas/categories": "./_shared/schemas/categories.ts",
         "_shared/validations": "./_shared/validations/index.ts",
         "_shared/validations/usersValidation": "./_shared/validations/usersValidation.ts",
-        "_shared/validations/createUserValidation": "./_shared/validations/createUserValidation.ts",
+        "_shared/validations/eventsValidation": "./_shared/validations/eventsValidation.ts",
         "_shared/validations/samplesValidation": "./_shared/validations/samplesValidation.ts",
         "_shared/validations/authValidation": "./_shared/validations/authValidation.ts",
         "_shared/middlewares/middleware": "./_shared/middlewares/middleware.ts",
