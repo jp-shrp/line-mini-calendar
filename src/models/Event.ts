@@ -1,6 +1,6 @@
+import { formatJST } from '@/src/lib/date-utils'
 import { IIndexable, Model } from '@team-decorate/alcts'
 import { SelectEvent } from '_shared/schemas/events'
-import { format } from 'date-fns'
 
 const fillable: (keyof SelectEvent)[] = [
     'id',
@@ -46,17 +46,17 @@ export class Event extends Model implements SelectEvent {
     }
 
     /**
-     * 開始時刻を "HH:MM" 形式で取得
+     * 開始時刻を "HH:MM" 形式で取得（日本時間）
      */
     get startTime(): string {
-        return format(new Date(this.startDatetime), 'HH:mm')
+        return formatJST(this.startDatetime, 'HH:mm')
     }
 
     /**
-     * 終了時刻を "HH:MM" 形式で取得
+     * 終了時刻を "HH:MM" 形式で取得（日本時間）
      */
     get endTime(): string {
-        return format(new Date(this.endDatetime), 'HH:mm')
+        return formatJST(this.endDatetime, 'HH:mm')
     }
 
     /**

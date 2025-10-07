@@ -5,6 +5,7 @@ import {
     validatedApiHandler,
     type Variables,
 } from '_shared/middlewares/middleware'
+import { parseJSTtoUTC } from '_shared/utils/date-utils'
 import { getPaginationInfoFromRequest } from '_shared/paginationUtility'
 import type { SelectUser } from '_shared/schemas/users'
 import {
@@ -109,13 +110,14 @@ app.post(
         const userId = DUMMY_USER_ID
 
         // イベント作成
+        // フロントから送信されたdatetime-local形式の文字列を日本時間として解釈し、UTCに変換
         const eventData: CreateEventInput = {
             title: validatedData.title,
             description: validatedData.description,
             category: validatedData.category,
             iconUrl: validatedData.iconUrl,
-            startDatetime: new Date(validatedData.startDatetime),
-            endDatetime: new Date(validatedData.endDatetime),
+            startDatetime: parseJSTtoUTC(validatedData.startDatetime),
+            endDatetime: parseJSTtoUTC(validatedData.endDatetime),
             color: validatedData.color,
         }
         const newEvent = await createEvent(userId, eventData)
@@ -173,10 +175,14 @@ app.put(
             updateData.iconUrl = validatedData.iconUrl
         }
         if (validatedData.startDatetime !== undefined) {
-            updateData.startDatetime = new Date(validatedData.startDatetime)
+            // フロントから送信されたdatetime-local形式の文字列を日本時間として解釈し、UTCに変換
+            updateData.startDatetime = parseJSTtoUTC(
+                validatedData.startDatetime
+            )
         }
         if (validatedData.endDatetime !== undefined) {
-            updateData.endDatetime = new Date(validatedData.endDatetime)
+            // フロントから送信されたdatetime-local形式の文字列を日本時間として解釈し、UTCに変換
+            updateData.endDatetime = parseJSTtoUTC(validatedData.endDatetime)
         }
         if (validatedData.color !== undefined) {
             updateData.color = validatedData.color
