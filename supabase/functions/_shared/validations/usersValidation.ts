@@ -1,4 +1,4 @@
-import { z } from 'imports'
+import { z } from 'zod'
 
 /**
  * ユーザー作成時のバリデーションスキーマ

@@ -1,4 +1,4 @@
-import { z } from 'imports'
+import { z } from 'zod'
 
 /**
  * イベント作成時のバリデーションスキーマ
@@ -24,7 +24,7 @@ export const createEventSchema = z
             .max(50, 'カテゴリは50文字以内で入力してください'),
         iconUrl: z
             .string()
-            .url('有効なURLを入力してください')
+            //.url('有効なURLを入力してください')
             .optional()
             .transform((val) => val || undefined),
         startDatetime: z.string().min(1, '開始日時を入力してください'),

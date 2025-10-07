@@ -25,6 +25,8 @@ import {
 } from '_shared/validations/eventsValidation'
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 
+const DUMMY_USER_ID = 'c5f42133-6d0f-478d-8645-73e393aed5cb'
+
 // 型拡張 - Honoのコンテキストにユーザー情報を追加
 export type CalendarVariables = Variables & {
     user: SelectUser
@@ -58,7 +60,7 @@ app.get(
     apiHandler(async (c) => {
         // const user = c.get('user') as SelectUser
         // 開発用: ダミーユーザーID（UUID形式）
-        const userId = '00000000-0000-0000-0000-000000000000'
+        const userId = DUMMY_USER_ID
         const pagination = getPaginationInfoFromRequest(c)
 
         // クエリパラメータの取得
@@ -104,7 +106,7 @@ app.post(
     validatedApiHandler(createEventSchema, async (c, validatedData) => {
         // const user = c.get('user') as SelectUser
         // 開発用: ダミーユーザーID（UUID形式）
-        const userId = '00000000-0000-0000-0000-000000000000'
+        const userId = DUMMY_USER_ID
 
         // イベント作成
         const eventData: CreateEventInput = {
@@ -144,7 +146,7 @@ app.put(
     validatedApiHandler(updateEventSchema, async (c, validatedData) => {
         // const user = c.get('user') as SelectUser
         // 開発用: ダミーユーザーID（UUID形式）
-        const userId = '00000000-0000-0000-0000-000000000000'
+        const userId = DUMMY_USER_ID
         const eventId = c.req.param('id')
 
         // イベント更新データの準備
@@ -209,7 +211,7 @@ app.delete(
     apiHandler(async (c) => {
         // const user = c.get('user') as SelectUser
         // 開発用: ダミーユーザーID（UUID形式）
-        const userId = '00000000-0000-0000-0000-000000000000'
+        const userId = DUMMY_USER_ID
         const eventId = c.req.param('id')
 
         // イベント削除（ソフトデリート）
