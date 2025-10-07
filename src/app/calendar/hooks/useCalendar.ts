@@ -1,45 +1,109 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
+import {
+    useTodayEventsQuery,
+    useUpcomingEventsQuery,
+} from '@/src/app/calendar/api/event-query'
 import type { Event, UpcomingEvent } from '@/src/models/Event'
 
+export type ViewMode = 'day' | 'week' | 'month'
+
+/**
+ * APIイベントを画面表示用のEvent型に変換
+ */
+const convertToEvent = (apiEvent: {
+    id: string
+    title: string
+    startDatetime: Date
+    endDatetime: Date
+    iconUrl: string | null
+    color: string | null
+}): Event => {
+    const startTime = new Date(apiEvent.startDatetime).toLocaleTimeString(
+        'ja-JP',
+        {
+            hour: '2-digit',
+            minute: '2-digit',
+        }
+    )
+    const endTime = new Date(apiEvent.endDatetime).toLocaleTimeString('ja-JP', {
+        hour: '2-digit',
+        minute: '2-digit',
+    })
+
+    return {
+        id: apiEvent.id,
+        title: apiEvent.title,
+        startTime,
+        endTime,
+        icon: apiEvent.iconUrl || undefined,
+        color: apiEvent.color || 'bg-gray-500',
+    }
+}
+
+/**
+ * APIイベントを画面表示用のUpcomingEvent型に変換
+ */
+const convertToUpcomingEvent = (apiEvent: {
+    id: string
+    title: string
+    startDatetime: Date
+    endDatetime: Date
+    color: string | null
+}): UpcomingEvent => {
+    const startTime = new Date(apiEvent.startDatetime).toLocaleTimeString(
+        'ja-JP',
+        {
+            hour: '2-digit',
+            minute: '2-digit',
+        }
+    )
+    const endTime = new Date(apiEvent.endDatetime).toLocaleTimeString('ja-JP', {
+        hour: '2-digit',
+        minute: '2-digit',
+    })
+
+    return {
+        id: apiEvent.id,
+        title: apiEvent.title,
+        startTime,
+        endTime,
+        color: apiEvent.color || 'bg-gray-500',
+    }
+}
+
+/**
+ * カレンダー画面のビジネスロジックHook
+ * @returns カレンダー画面に必要なステートとハンドラー
+ */
 export const useCalendar = () => {
     const [selectedDate, setSelectedDate] = useState<Date>(new Date())
     const [displayMonth, setDisplayMonth] = useState<Date>(new Date())
+    const [viewMode, setViewMode] = useState<ViewMode>('month')
 
-    const todayEvents: Event[] = [
-        {
-            id: '1',
-            title: 'プレミアリーグ\nトッテナム対アーセナル',
-            startTime: '08:00',
-            endTime: '10:00',
-            icon: '⚽',
-            color: 'bg-pink-500',
-        },
-        {
-            id: '2',
-            title: 'Netflix\n今際の国のアリス3期配信',
-            startTime: '12:00',
-            endTime: '14:00',
-            icon: 'N',
-            color: 'bg-pink-500',
-        },
-    ]
+    // 今日のイベント一覧を取得
+    const {
+        data: todayEventsData,
+        isLoading: isTodayEventsLoading,
+        error: todayEventsError,
+    } = useTodayEventsQuery()
 
-    const upcomingEvents: UpcomingEvent[] = [
-        {
-            id: '3',
-            title: 'イベント名',
-            startTime: '12:00',
-            endTime: '16:00',
-            color: 'bg-purple-500',
-        },
-        {
-            id: '4',
-            title: 'イベント名1',
-            startTime: '12:00',
-            endTime: '16:00',
-            color: 'bg-purple-500',
-        },
-    ]
+    // 今後のイベント一覧を取得（最大5件）
+    const {
+        data: upcomingEventsData,
+        isLoading: isUpcomingEventsLoading,
+        error: upcomingEventsError,
+    } = useUpcomingEventsQuery(5)
+
+    // APIデータを画面表示用の型に変換
+    const todayEvents = useMemo(
+        () => (todayEventsData?.events || []).map(convertToEvent),
+        [todayEventsData]
+    )
+
+    const upcomingEvents = useMemo(
+        () => (upcomingEventsData?.events || []).map(convertToUpcomingEvent),
+        [upcomingEventsData]
+    )
 
     const handleDateChange = useCallback((date: Date) => {
         setSelectedDate(date)
@@ -49,17 +113,22 @@ export const useCalendar = () => {
         setDisplayMonth(date)
     }, [])
 
-    const handleViewModeToggle = useCallback(() => {
-        // 月表示切り替えロジック（今後実装）
+    const handleViewModeChange = useCallback((mode: ViewMode) => {
+        setViewMode(mode)
     }, [])
 
     return {
         selectedDate,
         displayMonth,
+        viewMode,
         todayEvents,
         upcomingEvents,
+        isTodayEventsLoading,
+        isUpcomingEventsLoading,
+        todayEventsError,
+        upcomingEventsError,
         handleDateChange,
         handleMonthChange,
-        handleViewModeToggle,
+        handleViewModeChange,
     }
 }

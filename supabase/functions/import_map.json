@@ -20,7 +20,7 @@
         "_shared/schemas/categories": "./_shared/schemas/categories.ts",
         "_shared/validations": "./_shared/validations/index.ts",
         "_shared/validations/usersValidation": "./_shared/validations/usersValidation.ts",
-        "_shared/validations/createUserValidation": "./_shared/validations/createUserValidation.ts",
+        "_shared/validations/eventsValidation": "./_shared/validations/eventsValidation.ts",
         "_shared/validations/samplesValidation": "./_shared/validations/samplesValidation.ts",
         "_shared/validations/authValidation": "./_shared/validations/authValidation.ts",
         "_shared/middlewares/middleware": "./_shared/middlewares/middleware.ts",
@@ -28,12 +28,16 @@
         "_shared/services/userService": "./_shared/services/userService.ts",
         "_shared/services/authService": "./_shared/services/authService.ts",
         "_shared/services/userMigrationService": "./_shared/services/userMigrationService.ts",
+        "_shared/services/eventService": "./_shared/services/eventService.ts",
         "_shared/types/common/errors": "./_shared/types/common/errors.ts",
         "_shared/errorMessages": "./_shared/errorMessages.ts",
         "_shared/paginationUtility": "./_shared/paginationUtility.ts",
         "_shared/types/responses": "./_shared/types/responses.ts",
         "_shared/types/pagination-types": "./_shared/types/pagination-types.ts",
         "_shared/types/auth-api-types": "./_shared/types/auth-api-types.ts",
+        "_shared/types/users-api-types": "./_shared/types/users-api-types.ts",
+        "_shared/types/events-api-types": "./_shared/types/events-api-types.ts",
+        "_shared/types/categories-api-types": "./_shared/types/categories-api-types.ts",
         "_shared/clientAdmin": "./_shared/clientAdmin.ts"
     }
 }

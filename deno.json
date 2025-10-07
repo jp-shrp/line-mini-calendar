@@ -21,7 +21,7 @@
         "_shared/schemas/categories": "./supabase/functions/_shared/schemas/categories.ts",
         "_shared/validations": "./supabase/functions/_shared/validations/index.ts",
         "_shared/validations/usersValidation": "./supabase/functions/_shared/validations/usersValidation.ts",
-        "_shared/validations/createUserValidation": "./supabase/functions/_shared/validations/createUserValidation.ts",
+        "_shared/validations/eventsValidation": "./supabase/functions/_shared/validations/eventsValidation.ts",
         "_shared/validations/samplesValidation": "./supabase/functions/_shared/validations/samplesValidation.ts",
         "_shared/validations/authValidation": "./supabase/functions/_shared/validations/authValidation.ts",
         "_shared/middlewares/middleware": "./supabase/functions/_shared/middlewares/middleware.ts",
@@ -29,6 +29,7 @@
         "_shared/services/userService": "./supabase/functions/_shared/services/userService.ts",
         "_shared/services/authService": "./supabase/functions/_shared/services/authService.ts",
         "_shared/services/userMigrationService": "./supabase/functions/_shared/services/userMigrationService.ts",
+        "_shared/services/eventService": "./supabase/functions/_shared/services/eventService.ts",
         "_shared/types/common/errors": "./supabase/functions/_shared/types/common/errors.ts",
         "_shared/errorMessages": "./supabase/functions/_shared/errorMessages.ts",
         "_shared/paginationUtility": "./supabase/functions/_shared/paginationUtility.ts",
@@ -36,6 +37,9 @@
         "_shared/types/responses": "./supabase/functions/_shared/types/responses.ts",
         "_shared/types/pagination-types": "./supabase/functions/_shared/types/pagination-types.ts",
         "_shared/types/auth-api-types": "./supabase/functions/_shared/types/auth-api-types.ts",
+        "_shared/types/users-api-types": "./supabase/functions/_shared/types/users-api-types.ts",
+        "_shared/types/events-api-types": "./supabase/functions/_shared/types/events-api-types.ts",
+        "_shared/types/categories-api-types": "./supabase/functions/_shared/types/categories-api-types.ts",
         "_shared/clientAdmin": "./supabase/functions/_shared/clientAdmin.ts"
     }
 }
