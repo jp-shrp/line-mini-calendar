@@ -41,14 +41,15 @@ export const useEventDetailQuery = (eventId: string, enabled = true) => {
  * @returns 今日のイベント一覧データ
  */
 export const useTodayEventsQuery = () => {
+    // 日付文字列を固定化（日付が変わるまで同じ値を返す）
     const dateRange = useMemo(() => {
-        const today = new Date()
-        today.setHours(0, 0, 0, 0)
-        const startOfDay = today.toISOString()
+        const now = new Date()
+        const year = now.getFullYear()
+        const month = String(now.getMonth() + 1).padStart(2, '0')
+        const day = String(now.getDate()).padStart(2, '0')
 
-        const endToday = new Date()
-        endToday.setHours(23, 59, 59, 999)
-        const endOfDay = endToday.toISOString()
+        const startOfDay = `${year}-${month}-${day}T00:00:00.000Z`
+        const endOfDay = `${year}-${month}-${day}T23:59:59.999Z`
 
         return { startOfDay, endOfDay }
     }, [])
@@ -75,8 +76,16 @@ export const useTodayEventsQuery = () => {
  * @returns 今後のイベント一覧データ
  */
 export const useUpcomingEventsQuery = (limit = 5) => {
+    // 現在日時を固定化（分単位で固定して安定化）
     const startDate = useMemo(() => {
-        return new Date().toISOString()
+        const now = new Date()
+        const year = now.getFullYear()
+        const month = String(now.getMonth() + 1).padStart(2, '0')
+        const day = String(now.getDate()).padStart(2, '0')
+        const hours = String(now.getHours()).padStart(2, '0')
+        const minutes = String(now.getMinutes()).padStart(2, '0')
+
+        return `${year}-${month}-${day}T${hours}:${minutes}:00.000Z`
     }, [])
 
     return useSupabaseQuery<EventsListResponse>({

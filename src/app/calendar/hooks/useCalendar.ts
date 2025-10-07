@@ -8,16 +8,14 @@ import type { Event, UpcomingEvent } from '@/src/models/Event'
 /**
  * APIイベントを画面表示用のEvent型に変換
  */
-const convertToEvent = (
-    apiEvent: {
-        id: string
-        title: string
-        startDatetime: Date
-        endDatetime: Date
-        iconUrl: string | null
-        color: string | null
-    }
-): Event => {
+const convertToEvent = (apiEvent: {
+    id: string
+    title: string
+    startDatetime: Date
+    endDatetime: Date
+    iconUrl: string | null
+    color: string | null
+}): Event => {
     const startTime = new Date(apiEvent.startDatetime).toLocaleTimeString(
         'ja-JP',
         {
@@ -43,15 +41,13 @@ const convertToEvent = (
 /**
  * APIイベントを画面表示用のUpcomingEvent型に変換
  */
-const convertToUpcomingEvent = (
-    apiEvent: {
-        id: string
-        title: string
-        startDatetime: Date
-        endDatetime: Date
-        color: string | null
-    }
-): UpcomingEvent => {
+const convertToUpcomingEvent = (apiEvent: {
+    id: string
+    title: string
+    startDatetime: Date
+    endDatetime: Date
+    color: string | null
+}): UpcomingEvent => {
     const startTime = new Date(apiEvent.startDatetime).toLocaleTimeString(
         'ja-JP',
         {
