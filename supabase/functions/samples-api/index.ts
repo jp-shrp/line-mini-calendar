@@ -1,11 +1,10 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import {
     apiHandler,
-    initApi,
-    type Variables,
-    createValidationError,
     createBadRequestError,
     createInternalServerError,
+    initApi,
+    type Variables,
 } from '../_shared/middlewares/middleware.ts'
 
 // サブAPIのインポート
@@ -25,10 +24,7 @@ const app = initApi<{ Variables: SamplesVariables }>('/samples-api')
 app.get(
     '/test-error/400',
     apiHandler(async (c) => {
-        throw createValidationError(
-            { field: 'test', message: 'これはテスト用の400エラーです' },
-            'テストデータのバリデーションに失敗しました'
-        )
+        throw createBadRequestError('これはテスト用の400エラーです')
     })
 )
 
