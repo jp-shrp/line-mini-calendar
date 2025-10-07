@@ -1,29 +1,29 @@
-import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import {
     apiHandler,
-    authMiddleware,
+    // authMiddleware, // 一時的にコメントアウト（開発用）
     initApi,
     validatedApiHandler,
     type Variables,
 } from '_shared/middlewares/middleware'
+import { getPaginationInfoFromRequest } from '_shared/paginationUtility'
+import type { SelectUser } from '_shared/schemas/users'
 import {
     createEvent,
     deleteEvent,
     getEvents,
     updateEvent,
 } from '_shared/services/eventService'
-import { getPaginationInfoFromRequest } from '_shared/paginationUtility'
-import { SuccessResponse } from '_shared/types/responses'
-import type { SelectUser } from '_shared/schemas/users'
 import type {
-    EventsListResponse,
-    EventDetailResponse,
     CreateEventInput,
+    EventDetailResponse,
+    EventsListResponse,
 } from '_shared/types/events-api-types'
+import { SuccessResponse } from '_shared/types/responses'
 import {
     createEventSchema,
     updateEventSchema,
 } from '_shared/validations/eventsValidation'
+import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 
 // 型拡張 - Honoのコンテキストにユーザー情報を追加
 export type CalendarVariables = Variables & {
@@ -49,12 +49,16 @@ app.get(
  * イベント一覧取得API
  * GET /calendar-api/events
  * クエリパラメータ: start_date, end_date, category, page, limit
+ *
+ * TODO: 認証を一時的に無効化（開発用）
  */
 app.get(
     '/events',
-    authMiddleware,
+    // authMiddleware, // 一時的にコメントアウト
     apiHandler(async (c) => {
-        const user = c.get('user') as SelectUser
+        // const user = c.get('user') as SelectUser
+        // 開発用: ダミーユーザーID（UUID形式）
+        const userId = '00000000-0000-0000-0000-000000000000'
         const pagination = getPaginationInfoFromRequest(c)
 
         // クエリパラメータの取得
@@ -64,7 +68,7 @@ app.get(
 
         // イベント一覧取得
         const { events, total } = await getEvents({
-            userId: user.id,
+            userId,
             startDate,
             endDate,
             category,
@@ -91,12 +95,16 @@ app.get(
 /**
  * イベント作成API
  * POST /calendar-api/events
+ *
+ * TODO: 認証を一時的に無効化（開発用）
  */
 app.post(
     '/events',
-    authMiddleware,
+    // authMiddleware, // 一時的にコメントアウト
     validatedApiHandler(createEventSchema, async (c, validatedData) => {
-        const user = c.get('user') as SelectUser
+        // const user = c.get('user') as SelectUser
+        // 開発用: ダミーユーザーID（UUID形式）
+        const userId = '00000000-0000-0000-0000-000000000000'
 
         // イベント作成
         const eventData: CreateEventInput = {
@@ -108,7 +116,7 @@ app.post(
             endDatetime: new Date(validatedData.endDatetime),
             color: validatedData.color,
         }
-        const newEvent = await createEvent(user.id, eventData)
+        const newEvent = await createEvent(userId, eventData)
 
         // レスポンス作成
         const response: EventDetailResponse = {
@@ -127,12 +135,16 @@ app.post(
 /**
  * イベント更新API
  * PUT /calendar-api/events/:id
+ *
+ * TODO: 認証を一時的に無効化（開発用）
  */
 app.put(
     '/events/:id',
-    authMiddleware,
+    // authMiddleware, // 一時的にコメントアウト
     validatedApiHandler(updateEventSchema, async (c, validatedData) => {
-        const user = c.get('user') as SelectUser
+        // const user = c.get('user') as SelectUser
+        // 開発用: ダミーユーザーID（UUID形式）
+        const userId = '00000000-0000-0000-0000-000000000000'
         const eventId = c.req.param('id')
 
         // イベント更新データの準備
@@ -169,7 +181,7 @@ app.put(
         }
 
         // イベント更新
-        const updatedEvent = await updateEvent(eventId, user.id, updateData)
+        const updatedEvent = await updateEvent(eventId, userId, updateData)
 
         // レスポンス作成
         const response: EventDetailResponse = {
@@ -188,16 +200,20 @@ app.put(
 /**
  * イベント削除API（ソフトデリート）
  * DELETE /calendar-api/events/:id
+ *
+ * TODO: 認証を一時的に無効化（開発用）
  */
 app.delete(
     '/events/:id',
-    authMiddleware,
+    // authMiddleware, // 一時的にコメントアウト
     apiHandler(async (c) => {
-        const user = c.get('user') as SelectUser
+        // const user = c.get('user') as SelectUser
+        // 開発用: ダミーユーザーID（UUID形式）
+        const userId = '00000000-0000-0000-0000-000000000000'
         const eventId = c.req.param('id')
 
         // イベント削除（ソフトデリート）
-        await deleteEvent(eventId, user.id)
+        await deleteEvent(eventId, userId)
 
         return c.json(
             new SuccessResponse({

@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { useSupabaseQuery } from '@/src/hooks/useSupabaseQuery'
 import { eventQueryKeys } from './query-key'
 import type {
@@ -16,6 +17,7 @@ export const useEventListQuery = (params?: EventsQueryParams) => {
         queryKey: [...eventQueryKeys.list(params || {})] as string[],
         functionName: 'calendar-api/events',
         params,
+        retry: 0,
     })
 }
 
@@ -30,6 +32,7 @@ export const useEventDetailQuery = (eventId: string, enabled = true) => {
         queryKey: [...eventQueryKeys.detail(eventId)] as string[],
         functionName: `calendar-api/events/${eventId}`,
         enabled: enabled && !!eventId,
+        retry: 0,
     })
 }
 
@@ -38,22 +41,31 @@ export const useEventDetailQuery = (eventId: string, enabled = true) => {
  * @returns 今日のイベント一覧データ
  */
 export const useTodayEventsQuery = () => {
-    const today = new Date()
-    const startOfDay = new Date(today.setHours(0, 0, 0, 0))
-    const endOfDay = new Date(today.setHours(23, 59, 59, 999))
+    const dateRange = useMemo(() => {
+        const today = new Date()
+        today.setHours(0, 0, 0, 0)
+        const startOfDay = today.toISOString()
+
+        const endToday = new Date()
+        endToday.setHours(23, 59, 59, 999)
+        const endOfDay = endToday.toISOString()
+
+        return { startOfDay, endOfDay }
+    }, [])
 
     return useSupabaseQuery<EventsListResponse>({
         queryKey: [
             ...eventQueryKeys.list({
-                startDate: startOfDay.toISOString(),
-                endDate: endOfDay.toISOString(),
+                startDate: dateRange.startOfDay,
+                endDate: dateRange.endOfDay,
             }),
         ] as string[],
         functionName: 'calendar-api/events',
         params: {
-            startDate: startOfDay.toISOString(),
-            endDate: endOfDay.toISOString(),
+            startDate: dateRange.startOfDay,
+            endDate: dateRange.endOfDay,
         },
+        retry: 0,
     })
 }
 
@@ -63,19 +75,22 @@ export const useTodayEventsQuery = () => {
  * @returns 今後のイベント一覧データ
  */
 export const useUpcomingEventsQuery = (limit = 5) => {
-    const now = new Date()
+    const startDate = useMemo(() => {
+        return new Date().toISOString()
+    }, [])
 
     return useSupabaseQuery<EventsListResponse>({
         queryKey: [
             ...eventQueryKeys.list({
-                startDate: now.toISOString(),
+                startDate,
                 limit,
             }),
         ] as string[],
         functionName: 'calendar-api/events',
         params: {
-            startDate: now.toISOString(),
+            startDate,
             limit,
         },
+        retry: 0,
     })
 }
