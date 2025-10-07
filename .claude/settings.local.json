@@ -74,7 +74,8 @@
             "mcp__serena__think_about_task_adherence",
             "Bash(git rev-parse:*)",
             "mcp__ide__getDiagnostics",
-            "Bash(xargs kill:*)"
+            "Bash(xargs kill:*)",
+            "Bash(cat:*)"
         ],
         "deny": [],
         "ask": []
