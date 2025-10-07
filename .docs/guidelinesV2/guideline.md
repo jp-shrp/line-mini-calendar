@@ -123,7 +123,13 @@ export function ProductInteractionClient({ productId }: { productId: string }) {
     - `useState`、`useEffect`等のReactフックが必要
     - ブラウザ専用API使用（localStorage、geolocation等）
 
-#### 7.1. SSRでのエラーハンドリング
+### 8. エラーハンドリング戦略
+
+- ✅ **必須**: エラーハンドリングの一貫性を保つ
+- ✅ **必須**: SSRとCSRで適切なエラーハンドリングパターンを使い分ける
+- ✅ **必須**: `StandardApiError`型を使用
+
+#### 8.1. SSRでのエラーハンドリング
 
 - ✅ **必須**: SSRページコンポーネントでは`try-catch`を行わない
 - ✅ **必須**: エラーハンドリングはNext.jsのError Boundaryに委ねる
@@ -152,7 +158,6 @@ export default async function UserPage() {
 
     return (
         <div>
-            {/* 正常時のUI */}
             <h1>ユーザー一覧</h1>
             {data.users.map((user) => (
                 <div key={user.id}>{user.name}</div>
@@ -207,14 +212,10 @@ export default function ErrorPage({ error, reset }: ErrorPageProps) {
 - コードがシンプルで読みやすい
 - エラー画面の一元管理が可能
 
-### 8. エラーハンドリング戦略
+#### 8.2. CSRでのエラーハンドリング
 
-- ✅ **必須**: エラーハンドリングの一貫性を保つ
 - ✅ **必須**: `QueryStateHandler`コンポーネントを活用
 - ✅ **必須**: `useSupabaseQuery`フックで自動エラーハンドリング
-- ✅ **必須**: `StandardApiError`型を使用
-
-#### 8.1. エラーハンドリングの基本フロー
 
 ```tsx
 // ✅ 正しい: QueryStateHandlerを使用したエラーハンドリング
@@ -247,8 +248,6 @@ export function UserList() {
     )
 }
 ```
-
-#### 8.2. エラー種別ごとの処理
 
 **自動処理されるエラー（QueryStateHandler内）:**
 
@@ -338,22 +337,39 @@ return (
 
 ```tsx
 // ✅ 正しい: StandardApiError型の定義
+// middleware.tsのApiErrorクラスのtoStandardError()メソッドが返す型
 export interface StandardApiError {
-    status: number
-    title: string
-    message: string
-    errors?: Record<string, string[]>
+    title: string // エラータイトル
+    message: string // エラーメッセージ（ユーザー向け）
+    code: string // エラーコード（例: VALIDATION_ERROR, NOT_FOUND）
+    status: number // HTTPステータスコード
+    details?: any // 追加の詳細情報（バリデーションエラーの場合はフィールドごとのエラー等）
 }
 
-// Edge Functionからのレスポンス例
+// Edge Functionからのレスポンス例（バリデーションエラー）
 {
+    title: 'バリデーションエラー',
+    message: '入力内容に不備があります。内容をご確認ください。',
+    code: 'VALIDATION_ERROR',
     status: 422,
-    title: 'Validation Error',
-    message: '入力内容に誤りがあります',
-    errors: {
-        name: ['名前は必須です'],
-        email: ['メールアドレスの形式が正しくありません']
-    }
+    details: [
+        {
+            field: 'name',
+            message: '名前は必須です'
+        },
+        {
+            field: 'email',
+            message: 'メールアドレスの形式が正しくありません'
+        }
+    ]
+}
+
+// Edge Functionからのレスポンス例（404エラー）
+{
+    title: 'リソースが見つかりません',
+    message: '指定されたユーザーが見つかりませんでした',
+    code: 'NOT_FOUND',
+    status: 404
 }
 ```
 
@@ -361,36 +377,28 @@ export interface StandardApiError {
 
 - ✅ **必須**: 以下の標準ディレクトリ構成に従う
 
-```
-feature-name/
-├── page.tsx          # Next.js App Router Page Component
-├── error.tsx         # Error Boundary (必要に応じて)
-├── components/       # UI Components
-│   ├── FeatureClient.tsx    # Client Component (useHookを呼び出し)
-│   ├── MainView.tsx         # Presentational Component
-│   └── SubComponent.tsx     # 機能固有のコンポーネント
-├── hooks/           # Custom Hooks
-│   └── useFeature.ts       # Business Logic Hook
-├── api/             # API関連
-│   ├── query-key.ts        # React Query Keys
-│   └── feature-query.ts    # Query Functions
-└── [id]/            # 動的ルート (必要に応じて)
-    ├── page.tsx
-    ├── components/
-    ├── hooks/
-    └── api/
-```
-
-**命名規則:**
-
-- **Client Component**: `FeatureClient.tsx` (useHookを呼び出し、MainViewにpropsを渡す)
-- **Hook**: `useFeature.ts` (APIクエリーフックを呼び出し、ビジネスロジックを処理)
-- **Query**: `useFeatureQuery.ts` (React Queryを使用したAPI呼び出し)
-- **Query Key**: クエリキーは階層構造で定義
-
-**Modelディレクトリ構成:**
+#### 9.1. フロントエンド（Next.js App Router）
 
 ```
+app/
+└── feature-name/
+    ├── page.tsx          # Next.js App Router Page Component
+    ├── error.tsx         # Error Boundary (必要に応じて)
+    ├── components/       # UI Components
+    │   ├── FeatureClient.tsx    # Client Component (useHookを呼び出し)
+    │   ├── MainView.tsx         # Presentational Component
+    │   └── SubComponent.tsx     # 機能固有のコンポーネント
+    ├── hooks/           # Custom Hooks
+    │   └── useFeature.ts       # Business Logic Hook
+    ├── api/             # API関連
+    │   ├── query-key.ts        # React Query Keys
+    │   └── feature-query.ts    # Query Functions
+    └── [id]/            # 動的ルート (必要に応じて)
+        ├── page.tsx
+        ├── components/
+        ├── hooks/
+        └── api/
+
 src/models/
 ├── entities/ # DBのsourceに存在しないエンティティモデル
 │   ├── Paginate.ts # ページネーション用エンティティ
@@ -398,7 +406,58 @@ src/models/
 └── *.ts # DBのsourceに対応するモデル (Product.ts, User.ts等)
 ```
 
-**Model配置ルール:**
+#### 9.2. バックエンド（Supabase Edge Functions）
+
+```
+supabase/functions/
+├── _shared/
+│   ├── types/           # 型定義（クライアントと共有）
+│   │   ├── common/      # 共通型
+│   │   │   └── errors.ts       # エラー型定義
+│   │   ├── responses.ts        # レスポンス共通型
+│   │   ├── pagination-types.ts # ページネーション型
+│   │   └── users-api-types.ts  # Users API固有の型定義
+│   ├── schemas/         # Drizzle ORMスキーマ定義（単一の真実の源）
+│   │   ├── index.ts     # 全スキーマのエクスポート
+│   │   └── users.ts     # テーブルスキーマと基本型定義
+│   ├── validations/     # Zodバリデーションスキーマ
+│   │   ├── index.ts     # 全バリデーションのエクスポート
+│   │   ├── createUserValidation.ts  # フォームバリデーション定義
+│   │   └── usersValidation.ts       # API入力バリデーション定義
+│   ├── services/        # ビジネスロジック層（単一責任）
+│   │   └── userService.ts      # ユーザー関連のビジネスロジック
+│   ├── middlewares/     # ミドルウェア
+│   │   └── middleware.ts       # 共通ミドルウェア
+│   └── utils/           # ユーティリティ
+├── users-api/           # ユーザー関連API
+│   ├── index.ts         # ルート定義（メインエンドポイント）
+│   ├── profile-api.ts   # プロフィール関連API
+│   └── settings-api.ts  # 設定関連API
+├── products-api/        # 商品関連API
+│   ├── index.ts         # ルート定義
+│   ├── list-api.ts      # 一覧関連API
+│   └── detail-api.ts    # 詳細関連API
+└── notifications-api/   # 通知管理API（独立）
+    └── index.ts
+```
+
+#### 9.3. 命名規則
+
+**フロントエンド:**
+
+- **Client Component**: `FeatureClient.tsx` (useHookを呼び出し、MainViewにpropsを渡す)
+- **Hook**: `useFeature.ts` (APIクエリーフックを呼び出し、ビジネスロジックを処理)
+- **Query**: `useFeatureQuery.ts` (React Queryを使用したAPI呼び出し)
+- **Query Key**: クエリキーは階層構造で定義
+
+**バックエンド:**
+
+- **リソース名**: 複数形、単語区切りはハイフン（-）（例: users-api, products-api）
+- **テーブル名**: 複数形、snake_case（例: users, order_items）
+- **カラム名**: snake_case（例: created_at, is_active）
+- **外部キー**: {テーブル名単数形}\_id（例: user_id, product_id）
+
+#### 9.4. Model配置ルール
 
 - ✅ **必須**: DBのテーブルに対応するモデルは`src/models/`直下に配置
 - ✅ **必須**: DBのsourceに存在しないエンティティモデルは`src/models/entities/`に配置
@@ -751,31 +810,9 @@ useSupabaseMutation({
 - ✅ **必須**: バリデーションは`_shared/validations/*`に定義すること
 - ✅ **必須**: Edge FunctionsとClient両方で使用する型は`_shared/types/`に配置すること
 - ❌ **禁止**: 型の重複定義
+- 📌 **参照**: ディレクトリ構成の詳細は[9.2. バックエンド（Supabase Edge Functions）](#92-バックエンドsupabase-edge-functions)を参照
 
-#### 12.1. ディレクトリ構成
-
-```
-supabase/functions/_shared/
-├── schemas/                # Drizzle ORMスキーマ定義（単一の真実の源）
-│   ├── index.ts            # 全スキーマのエクスポート
-│   └── users.ts            # テーブルスキーマと基本型定義
-├── validations/            # Zodバリデーションスキーマ
-│   ├── index.ts            # 全バリデーションのエクスポート
-│   ├── createUserValidation.ts  # フォームバリデーション定義
-│   └── usersValidation.ts  # API入力バリデーション定義
-├── types/                  # API固有の型定義（Schemaから生成）
-│   ├── common/             # 共通型
-│   │   └── errors.ts       # エラー型定義
-│   ├── responses.ts        # レスポンス共通型
-│   ├── pagination-types.ts # ページネーション型
-│   └── users-api-types.ts  # Users API固有の型定義
-├── services/               # ビジネスロジック層
-│   └── userService.ts      # ユーザー関連のビジネスロジック
-└── middlewares/            # ミドルウェア
-    └── middleware.ts       # 共通ミドルウェア
-```
-
-#### 12.2. Schema定義（Drizzle ORM）
+#### 12.1. Schema定義（Drizzle ORM）
 
 スキーマは単一の真実の源（Single Source of Truth）として機能します。
 
@@ -804,7 +841,7 @@ export type InsertUser = InferInsertModel<typeof users>
 export type UpdateUser = Partial<InsertUser>
 ```
 
-#### 12.3. Validation定義（Zod）
+#### 12.2. Validation定義（Zod）
 
 バリデーションスキーマはフォーム入力やAPI入力の検証に使用します。
 
@@ -859,7 +896,7 @@ export const updateUserSchema = z.object({
 export type UpdateUserFormData = z.infer<typeof updateUserSchema>
 ```
 
-#### 12.4. API型定義（Schema First）
+#### 12.3. API型定義（Schema First）
 
 API固有の型はSchemaから生成された型をベースに拡張します。
 
@@ -894,7 +931,7 @@ export type CreateUserInput = Omit<InsertUser, 'id' | 'createdAt' | 'updatedAt'>
 export type UpdateUserInput = UpdateUser
 ```
 
-#### 12.5. 型のフロー
+#### 12.4. 型のフロー
 
 ```
 ┌─────────────────────────────────────────────────┐
@@ -924,7 +961,7 @@ export type UpdateUserInput = UpdateUser
                   └─────────────────────────────────┘
 ```
 
-#### 12.6. importパスの規則
+#### 12.5. importパスの規則
 
 - ✅ **必須**: `_shared/`で始まるaliasを使用すること
 - ✅ **必須**: 相対パスではなく絶対パスを使用すること
@@ -939,7 +976,7 @@ import { users } from '_shared/schemas/users'
 import type { User } from '../../_shared/types/users-api-types'
 ```
 
-#### 12.7. 型定義のベストプラクティス
+#### 12.6. 型定義のベストプラクティス
 
 **Schema First原則:**
 
@@ -986,3 +1023,411 @@ interface UserListProps {
     }[]
 }
 ```
+
+## 13. API設計パターン（MUST）
+
+### 13.1. Middleware設計パターン
+
+- ✅ **必須**: `initApi`と`apiHandler`パターンを使用すること
+- ✅ **必須**: try-catchは極力使用しない設計
+- ✅ **必須**: 統一されたエラー形式で返却
+- ✅ **必須**: グローバルミドルウェアによる共通処理の自動化
+
+#### 13.1.1. initApi関数とapiHandlerパターン
+
+```typescript
+// _shared/middlewares/middleware.ts から提供される機能
+
+/**
+ * API初期化関数
+ * - グローバルミドルウェアの自動適用
+ * - ヘルスチェックエンドポイントの自動追加
+ * - CORSとエラーハンドリングの統一設定
+ */
+export const initApi = <E extends Env = Env>(basePath: string) => {
+    const app = new Hono<E>().basePath(basePath)
+
+    // 共通ミドルウェアの適用
+    app.use('*', corsMiddleware)
+    app.options('*', optionsHandler)
+    app.use('*', errorMiddleware) // グローバルエラーキャッチ
+
+    // ヘルスチェックエンドポイント
+    app.get('/health', (c) => {
+        return c.json({
+            status: 'ok',
+            timestamp: new Date().toISOString(),
+            service: basePath.replace('/', ''),
+        })
+    })
+
+    return app
+}
+
+/**
+ * APIハンドラーラッパー
+ * - try-catchロジックを内包
+ * - 統一されたエラーレスポンス
+ * - 詳細なエラーログ出力
+ */
+export const apiHandler = <T>(handler: (c: Context) => Promise<T>) => {
+    return async (c: Context) => {
+        try {
+            return await handler(c)
+        } catch (error: unknown) {
+            // エラー処理は内部で統一的に実行
+            // Zod, ApiError, HTTPException, その他エラーを自動判別
+        }
+    }
+}
+
+/**
+ * バリデーション付きAPIハンドラー
+ * - Zodスキーマによる自動バリデーション
+ * - バリデーション済みデータの型安全な受け渡し
+ * - エラーハンドリングの統一化
+ */
+export const validatedApiHandler = <T>(
+    schema: any,
+    handler: (c: Context, validatedData: T) => Promise<Response>
+) => {
+    // 内部でバリデーションとエラーハンドリングを実行
+}
+```
+
+#### 13.1.2. メインエントリポイント実装例
+
+```typescript
+// users-api/index.ts
+import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
+import { initApi, apiHandler } from '../_shared/middleware.ts'
+
+// 型拡張 - Honoのコンテキストにユーザー情報を追加
+export type Variables = {
+    user: any
+    supabase: any
+}
+
+// サブAPIのインポート
+import rewardsApi from './rewards-api.ts'
+import membersApi from './members-api.ts'
+
+// 共通初期化関数を使ってAPIアプリケーションを初期化
+const app = initApi<{ Variables: Variables }>('/users-api')
+
+// ルート定義
+app.get(
+    '/',
+    apiHandler(async (c) => {
+        return c.json({ message: 'Users API is running' })
+    })
+)
+
+// サブAPIをルーティング
+app.route('/rewards', rewardsApi)
+app.route('/members', membersApi)
+
+Deno.serve(app.fetch)
+```
+
+#### 13.1.3. サブAPI実装例
+
+```typescript
+// users-api/rewards-api.ts
+import { authMiddleware, apiHandler } from '../_shared/middleware.ts'
+import type { Variables } from './index.ts'
+import { Hono } from 'https://jsr.io/@hono/hono/4.7.6/src/index.ts'
+import {
+    getRewardsForUser,
+    getRewardById,
+} from '../_shared/services/rewardService.ts'
+import { getPaginationInfoFromRequest } from '_shared/paginationUtility'
+import type { SelectUser } from '_shared/schemas'
+
+const rewardsApi = new Hono<{ Variables: Variables }>()
+
+/**
+ * ユーザー向けリワード一覧取得API
+ */
+rewardsApi.get(
+    '/shops/:shopId',
+    authMiddleware,
+    apiHandler(async (c) => {
+        const user = c.get('user') as SelectUser
+        const shopId = c.req.param('shopId')
+        const pagination = getPaginationInfoFromRequest(c)
+        const filter = c.req.query('filter')
+
+        const result = await getRewardsForUser(user?.id, shopId, {
+            pagination,
+            filter: filter as RewardFilterType,
+        })
+
+        return c.json(result)
+    })
+)
+
+export default rewardsApi
+```
+
+### 13.2. Supabase Edge Functions/API設計原則
+
+- ✅ **必須**: APIは `supabase/functions/{resource}-api` として実装
+- ✅ **必須**: RESTful設計を基本とし、リソース単位でエンドポイントを分割
+- ✅ **必須**: サーバー側で認証・バリデーション・エラー処理を徹底
+- ✅ **必須**: レスポンスは必ずJSON形式、型定義を厳守
+- ✅ **必須**: ビジネスロジックはサービス層（`_shared/services/`）に分離
+- 📌 **参照**: ディレクトリ構成の詳細は[9.2. バックエンド（Supabase Edge Functions）](#92-バックエンドsupabase-edge-functions)を参照
+
+### 13.3. サービス層（`_shared/services/`）の設計
+
+- ✅ **必須**: 1つのサービスクラスは1つのビジネスドメインのみを担当
+- ✅ **必須**: データベースアクセス・トランザクション管理・ビジネスルールを担当
+- ✅ **必須**: API間で共通利用できるサービス関数を提供
+
+```typescript
+// ✅ 正しい: 各ドメインごとにサービスを分割
+// _shared/services/UserService.ts
+export class UserService {
+    async getUserProfile(userId: string) {
+        const user = await db.select().from(users).where(eq(users.id, userId))
+        return user[0]
+    }
+
+    async updateUserProfile(userId: string, data: UpdateUserData) {
+        return await db
+            .update(users)
+            .set(data)
+            .where(eq(users.id, userId))
+            .returning()
+    }
+}
+
+// _shared/services/ProductService.ts
+export class ProductService {
+    async getProducts(filters?: ProductFilters) {
+        // 商品取得ロジック
+    }
+
+    async getProductById(id: string) {
+        // 商品詳細取得ロジック
+    }
+}
+```
+
+### 13.4. エンドポイント命名規則・resource分離
+
+- ✅ **必須**: 1つのエンドポイントファイルは1つのリソース管理のみを担当
+- ✅ **必須**: リソース名は複数形、単語区切りはハイフン（-）
+- ✅ **必須**: パスパラメータは :paramName 形式
+- ✅ **必須**: エンドポイントファイルはルーティング・認証・レスポンス処理のみを担当
+- ✅ **必須**: 具体的な処理は対応するサービス層に委譲
+
+### 13.5. レスポンス形式の統一
+
+- ✅ **必須**: APIの成功レスポンスは `SuccessResponse` クラスを使用して統一
+
+```typescript
+// _shared/types/responses.ts
+export class SuccessResponse<T = unknown> {
+    constructor(options: { data: T; message?: string })
+}
+
+// 使用例
+return new SuccessResponse({
+    data: users,
+    message: 'ユーザー一覧を取得しました',
+})
+
+// 実際のレスポンスJSON
+{
+    "success": true,
+    "data": [...],
+    "message": "ユーザー一覧を取得しました"
+}
+```
+
+### 13.6. `_shared` ディレクトリ管理ルール
+
+- ✅ **必須**: `_shared`ディレクトリに新しいファイルを追加した場合は、必ず以下のファイルを更新する
+
+1. **`supabase/functions/import_map.json`** - Supabase Functions内での import パス解決用
+2. **`deno.json`** - プロジェクトルートでの Deno 実行時の import パス解決用
+
+```json
+// supabase/functions/import_map.json
+{
+    "imports": {
+        "_shared/validations/newValidation": "./_shared/validations/newValidation.ts"
+    }
+}
+
+// deno.json
+{
+    "imports": {
+        "_shared/validations/newValidation": "./supabase/functions/_shared/validations/newValidation.ts"
+    }
+}
+```
+
+## 14. データベース設計とマイグレーション（MUST）
+
+### 14.1. データベースマイグレーションの流れ
+
+#### 14.1.1. 基本的なマイグレーション作成手順
+
+1. **スキーマの定義**
+    - `supabase/functions/_shared/schemas`ディレクトリにスキーマファイルを作成または編集
+    - Drizzle ORMのスキーマ定義を使用
+
+2. **マイグレーションファイルの生成**
+
+    ```bash
+    # マイグレーション生成コマンド（要設定）
+    npm run db:generate {migration_name}
+    ```
+
+    - `migration_name`は分かりやすい名前を付ける（例: add_users_table, update_posts_schema）
+    - このコマンドでDrizzleが自動的にSQLマイグレーションファイルを生成
+
+3. **マイグレーションの実行**
+
+    ```bash
+    npm run db:migrate
+    ```
+
+    - 未適用のマイグレーションを自動的に適用
+    - データベースの状態を最新に更新
+
+#### 14.1.2. マイグレーションのベストプラクティス
+
+- ✅ **必須**: スキーマファースト - 常にスキーマ定義を更新してからマイグレーションを生成
+- ✅ **必須**: 命名規則 - マイグレーション名は「動作\_対象\_詳細」の形式を推奨
+- ✅ **必須**: レビュー必須 - 生成されたSQLファイルを必ず確認してから実行
+- ✅ **必須**: バックアップ - 本番環境では必ずバックアップを取ってから実行
+
+### 14.2. データベース設計のベストプラクティス
+
+- 📌 **参照**: スキーマ定義の詳細は[12.1. Schema定義（Drizzle ORM）](#121-schema定義drizzle-orm)を参照
+- 📌 **参照**: 命名規則は[9.3. 命名規則](#93-命名規則)を参照
+
+#### 14.2.1. インデックス設計
+
+- ✅ **必須**: 頻繁に検索される外部キーには必ずインデックスを作成
+- ✅ **必須**: 複合インデックスはクエリパターンに合わせて設計
+- ✅ **必須**: ユニーク制約が必要な場合はユニークインデックスを使用
+
+#### 14.2.2. パフォーマンス最適化
+
+- ✅ **必須**: N+1問題を避けるためJOINを適切に使用
+- ✅ **必須**: 大量データの場合はページネーションを実装
+- ✅ **必須**: 集計処理は可能な限りデータベース側で実行
+
+#### 14.2.3. セキュリティ
+
+- ✅ **必須**: SQLインジェクション対策としてパラメータ化クエリを使用
+- ✅ **必須**: 機密データは暗号化して保存
+- ✅ **必須**: アクセス権限を適切に設定
+
+### 14.3. マイグレーション戦略
+
+#### 14.3.1. 開発環境
+
+```bash
+# スキーマ変更後、マイグレーション生成
+npm run db:generate add_new_feature
+
+# マイグレーション適用
+npm run db:migrate
+
+# データリセット（開発環境のみ）
+npm run db:reset
+```
+
+#### 14.3.2. 本番環境
+
+**事前準備（必須）:**
+
+```bash
+# 1. 必ずバックアップを作成
+# Supabaseダッシュボードまたはpg_dumpを使用
+
+# 2. マイグレーションSQLを事前確認
+cat ./migrations/XXXX_add_new_feature.sql
+
+# 3. ステージング環境でテスト実施
+```
+
+**マイグレーション実行:**
+
+```bash
+# マイグレーション適用
+npm run db:migrate
+```
+
+#### 14.3.3. ベストプラクティス
+
+1. **破壊的変更の回避**
+    - DROP TABLE/COLUMNは極力避ける
+    - 代わりに非推奨化→新規追加→移行→削除の順で実施
+
+2. **マイグレーションの粒度**
+    - 1つのマイグレーションは1つの変更に限定
+    - 複雑な変更は複数のマイグレーションに分割
+
+3. **テスト環境での検証**
+    - 本番適用前に必ずステージング環境で検証
+    - データ量が多い場合のパフォーマンスも確認
+
+4. **マイグレーション履歴の記録**
+    - 各マイグレーションの目的と影響をコメントで記載
+    - 実行日時と実行者を記録
+
+## 15. 技術スタック（参考情報）
+
+### 15.1. フロントエンド技術選定
+
+**コアフレームワーク:**
+
+- **Next.js 15.3.2** - React フレームワーク（App Router）
+- **React 19.0.0** - UIライブラリ
+- **TypeScript 5** - 型安全な開発環境
+
+**スタイリング:**
+
+- **Tailwind CSS 4** - ユーティリティファーストCSS
+- **@tailwindcss/postcss** - PostCSS統合
+
+**状態管理・データフェッチング:**
+
+- **React Query (TanStack Query) 5.85.5** - サーバーステート管理
+- **Jotai 2.12.5** - アトミックな状態管理
+- **React Hook Form 7.60.0** - フォーム管理
+- **Zod 4.1.9** - スキーマバリデーション
+
+### 15.2. バックエンド・データベース技術選定
+
+**インフラストラクチャ:**
+
+- **Supabase** - BaaS（認証、データベース、ストレージ）
+- **Supabase Edge Functions** - サーバーレス関数
+- **PostgreSQL** - データベース（Supabase経由）
+
+**APIフレームワーク:**
+
+- **Hono** - 軽量WebフレームワークをEdge Functionsで使用
+- **Drizzle ORM** - TypeScript型安全なORM
+
+### 15.3. 開発ツール
+
+**コード品質:**
+
+- **ESLint 9** - リンティング
+- **Prettier 3.5.3** - コードフォーマッティング
+- **eslint-plugin-unused-imports** - 未使用インポート検出
+
+**テスト:**
+
+- **Jest 30.1.3** - ユニットテスト
+- **@testing-library/jest-dom** - DOM テスト
+- **ts-jest** - TypeScript サポート
