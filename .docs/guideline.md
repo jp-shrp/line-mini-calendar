@@ -49,27 +49,112 @@ return <Content />
 - ❌ **禁止**: any型の使用
 - ✅ **必須**: 明示的な型定義
 
-### 6. Form戦略（Model First）
+### 6. Model戦略（@team-decorate/alcts）
 
-- ✅ **必須**: Model firstアプローチでForm実装
-- ✅ **必須**: バリデーションはModelに定義
-- ✅ **必須**: リクエスト型はModelから取得
+- ✅ **必須**: `@team-decorate/alcts`を使用してModelクラスを実装
+- ✅ **必須**: Modelクラスは`_shared/schemas`の型を`implements`すること
+- ✅ **必須**: `fillable`配列でマッピング可能なプロパティを定義
+- ✅ **必須**: フロントエンドでのデータマッピングはModelクラス経由で実行
+- ❌ **禁止**: スキーマ型を直接使用してデータ操作すること
+
+```tsx
+// ✅ 正しい: @team-decorate/alctsを使用したModel定義
+// src/models/samples/event.ts
+import { IIndexable, Model } from '@team-decorate/alcts'
+import { SelectEvent } from '_shared/schemas/events'
+
+const fillable: (keyof SelectEvent)[] = [
+    'id',
+    'title',
+    'description',
+    'startDatetime',
+    'endDatetime',
+    // ...その他のフィールド
+]
+
+export class Event extends Model implements SelectEvent {
+    id = ''
+    title = ''
+    description: string | null = null
+    // ...その他のプロパティ
+
+    constructor(data?: IIndexable) {
+        super()
+        this.convert = false
+        this.fillable = fillable
+        if (data) {
+            this.data = data
+        }
+    }
+}
+
+// 使用例
+const event = new Event(apiResponse)
+console.log(event.title) // マッピングされたデータにアクセス
+```
+
+**Modelの役割:**
+
+- **データマッピング**: API レスポンスをフロントエンド用のデータ構造に変換
+- **型安全性**: スキーマ型を`implements`することで型の一貫性を保証
+- **fillable制御**: マッピング可能なプロパティを明示的に管理
+
+### 7. Form戦略（Schema First）
+
+- ✅ **必須**: Schema firstアプローチでForm実装
+- ✅ **必須**: スキーマは`_shared/schemas`に定義（Drizzle ORM）
+- ✅ **必須**: バリデーションは`_shared/validations`に定義（Zod）
+- ✅ **必須**: リクエスト型は`_shared/types`から取得
 - ❌ **禁止**: コンポーネント内での独自スキーマ定義
 
 ```tsx
-// ✅ 正しい: Model firstアプローチ
-// models/samples/Item.ts
-export const ItemSchema = z.object({
-    id: z.number(),
-    name: z
-        .string()
-        .min(1, '商品名は必須です')
-        .max(100, '商品名は100文字以下で入力してください'),
+// ✅ 正しい: Schema firstアプローチ
+
+// 1. スキーマ定義（Drizzle ORM）
+// supabase/functions/_shared/schemas/events.ts
+export const events = pgTable('events', {
+    id: uuid('id').primaryKey().defaultRandom(),
+    title: varchar('title', { length: 100 }).notNull(),
+    description: text('description'),
     // ...その他のフィールド
 })
+
+export type SelectEvent = InferSelectModel<typeof events>
+export type InsertEvent = InferInsertModel<typeof events>
+
+// 2. バリデーション定義（Zod）
+// supabase/functions/_shared/validations/eventsValidation.ts
+export const createEventSchema = z.object({
+    title: z
+        .string()
+        .min(1, 'タイトルは必須です')
+        .max(100, 'タイトルは100文字以下で入力してください'),
+    description: z.string().optional(),
+    // ...その他のバリデーション
+})
+
+export type CreateEventFormData = z.infer<typeof createEventSchema>
+
+// 3. フロントエンドのModel定義（@team-decorate/alcts）
+// src/models/samples/event.ts
+export class Event extends Model implements SelectEvent {
+    id = ''
+    title = ''
+    description: string | null = null
+    // ...その他のプロパティ
+
+    constructor(data?: IIndexable) {
+        super()
+        this.convert = false
+        this.fillable = fillable
+        if (data) {
+            this.data = data
+        }
+    }
+}
 ```
 
-### 7. SSRファースト
+### 8. SSRファースト
 
 - ✅ **必須**: SSR前提のページから作成する
 - ✅ **必須**: SSRページで動的な処理が必要な場合はcomponentに切り出しCSRで作成する
@@ -123,13 +208,13 @@ export function ProductInteractionClient({ productId }: { productId: string }) {
     - `useState`、`useEffect`等のReactフックが必要
     - ブラウザ専用API使用（localStorage、geolocation等）
 
-### 8. エラーハンドリング戦略
+### 9. エラーハンドリング戦略
 
 - ✅ **必須**: エラーハンドリングの一貫性を保つ
 - ✅ **必須**: SSRとCSRで適切なエラーハンドリングパターンを使い分ける
 - ✅ **必須**: `StandardApiError`型を使用
 
-#### 8.1. SSRでのエラーハンドリング
+#### 9.1. SSRでのエラーハンドリング
 
 - ✅ **必須**: SSRページコンポーネントでは`try-catch`を行わない
 - ✅ **必須**: エラーハンドリングはNext.jsのError Boundaryに委ねる
@@ -212,7 +297,7 @@ export default function ErrorPage({ error, reset }: ErrorPageProps) {
 - コードがシンプルで読みやすい
 - エラー画面の一元管理が可能
 
-#### 8.2. CSRでのエラーハンドリング
+#### 9.2. CSRでのエラーハンドリング
 
 - ✅ **必須**: `QueryStateHandler`コンポーネントを活用
 - ✅ **必須**: `useSupabaseQuery`フックで自動エラーハンドリング
@@ -266,7 +351,7 @@ const { data, isLoading, error } = useSupabaseQuery({
 })
 ```
 
-#### 8.3. エラーモーダルを表示しない場合
+#### 9.3. エラーモーダルを表示しない場合
 
 ```tsx
 // ✅ 正しい: エラーをコンポーネント内で処理する場合
@@ -290,7 +375,7 @@ return (
 )
 ```
 
-#### 8.4. ローディング状態の管理
+#### 9.4. ローディング状態の管理
 
 ```tsx
 // ✅ 正しい: グローバルローディングとの連携
@@ -319,7 +404,7 @@ return (
 </QueryStateHandler>
 ```
 
-#### 8.5. 新規作成モード
+#### 9.5. 新規作成モード
 
 ```tsx
 // ✅ 正しい: 新規作成時はローディング・NotFoundをスキップ
@@ -333,7 +418,7 @@ return (
 </QueryStateHandler>
 ```
 
-#### 8.6. StandardApiError型
+#### 9.6. StandardApiError型
 
 ```tsx
 // ✅ 正しい: StandardApiError型の定義
@@ -373,11 +458,11 @@ export interface StandardApiError {
 }
 ```
 
-### 9. ディレクトリ構成
+### 10. ディレクトリ構成
 
 - ✅ **必須**: 以下の標準ディレクトリ構成に従う
 
-#### 9.1. フロントエンド（Next.js App Router）
+#### 10.1. フロントエンド（Next.js App Router）
 
 ```
 app/
@@ -406,7 +491,7 @@ src/models/
 └── *.ts # DBのsourceに対応するモデル (Product.ts, User.ts等)
 ```
 
-#### 9.2. バックエンド（Supabase Edge Functions）
+#### 10.2. バックエンド（Supabase Edge Functions）
 
 ```
 supabase/functions/
@@ -441,7 +526,7 @@ supabase/functions/
     └── index.ts
 ```
 
-#### 9.3. 命名規則
+#### 10.3. 命名規則
 
 **フロントエンド:**
 
@@ -457,12 +542,12 @@ supabase/functions/
 - **カラム名**: snake_case（例: created_at, is_active）
 - **外部キー**: {テーブル名単数形}\_id（例: user_id, product_id）
 
-#### 9.4. Model配置ルール
+#### 10.4. Model配置ルール
 
 - ✅ **必須**: DBのテーブルに対応するモデルは`src/models/`直下に配置
 - ✅ **必須**: DBのsourceに存在しないエンティティモデルは`src/models/entities/`に配置
 
-### 10. Hook+View分離パターン（MUST）
+### 11. Hook+View分離パターン（MUST）
 
 - ❌ **禁止**: ビジネスロジックとViewを同一コンポーネント内に混在させること
 - ✅ **必須**: すべてのClient Componentでhook+viewパターンを適用すること
@@ -558,14 +643,14 @@ export const UserDetail = ({ userId }: { userId: string }) => {
 }
 ```
 
-### 11. React Query統合パターン（MUST）
+### 12. React Query統合パターン（MUST）
 
 - ✅ **必須**: Query Keysは必ず分離して定義すること
 - ✅ **必須**: `useSupabaseQuery`と`useSupabaseMutation`を使用すること
 - ✅ **必須**: Business Logic HookでQuery Hooksを呼び出すこと
 - ❌ **禁止**: コンポーネント内で直接Query Hooksを呼び出すこと
 
-#### 11.1. Query Keys定義（必須）
+#### 12.1. Query Keys定義（必須）
 
 Query Keysは階層構造で定義し、キャッシュの無効化を容易にします。
 
@@ -587,7 +672,7 @@ export const userQueryKeys = {
 // ['users', 'items', 'detail', '123'] - 特定のユーザー詳細キャッシュを無効化
 ```
 
-#### 11.2. Query Hook定義
+#### 12.2. Query Hook定義
 
 `useSupabaseQuery`を使用してSupabase Edge Functionを呼び出します。
 
@@ -627,7 +712,7 @@ export const useUserWithErrorQuery = (errorType: '400' | '500') => {
 }
 ```
 
-#### 11.3. Mutation Hook定義
+#### 12.3. Mutation Hook定義
 
 `useSupabaseMutation`を使用してCREATE/UPDATE/DELETE操作を行います。
 
@@ -668,7 +753,7 @@ export const useDeleteUserMutation = () => {
 }
 ```
 
-#### 11.4. Business Logic Hook実装パターン
+#### 12.4. Business Logic Hook実装パターン
 
 Business Logic Hookは以下の要素を組み合わせて実装します：
 
@@ -724,7 +809,7 @@ export const useUserList = () => {
 }
 ```
 
-#### 11.5. 統合パターンの全体像
+#### 12.5. 統合パターンの全体像
 
 ```tsx
 // ✅ 正しい: API + Hook + Component 統合
@@ -765,7 +850,7 @@ const UserListClient = () => {
 }
 ```
 
-#### 11.6. Query Options
+#### 12.6. Query Options
 
 `useSupabaseQuery`では以下のオプションが利用可能です：
 
@@ -784,7 +869,7 @@ useSupabaseQuery({
 })
 ```
 
-#### 11.7. Mutation Options
+#### 12.7. Mutation Options
 
 `useSupabaseMutation`では以下のオプションが利用可能です：
 
@@ -804,15 +889,15 @@ useSupabaseMutation({
 })
 ```
 
-### 12. 共通型定義（Schema Firstアプローチ）（MUST）
+### 13. 共通型定義（Schema Firstアプローチ）（MUST）
 
 - ✅ **必須**: リソース系の型は`_shared/schemas/*`から生成すること
 - ✅ **必須**: バリデーションは`_shared/validations/*`に定義すること
 - ✅ **必須**: Edge FunctionsとClient両方で使用する型は`_shared/types/`に配置すること
 - ❌ **禁止**: 型の重複定義
-- 📌 **参照**: ディレクトリ構成の詳細は[9.2. バックエンド（Supabase Edge Functions）](#92-バックエンドsupabase-edge-functions)を参照
+- 📌 **参照**: ディレクトリ構成の詳細は[10.2. バックエンド（Supabase Edge Functions）](#102-バックエンドsupabase-edge-functions)を参照
 
-#### 12.1. Schema定義（Drizzle ORM）
+#### 13.1. Schema定義（Drizzle ORM）
 
 スキーマは単一の真実の源（Single Source of Truth）として機能します。
 
@@ -841,7 +926,7 @@ export type InsertUser = InferInsertModel<typeof users>
 export type UpdateUser = Partial<InsertUser>
 ```
 
-#### 12.2. Validation定義（Zod）
+#### 13.2. Validation定義（Zod）
 
 バリデーションスキーマはフォーム入力やAPI入力の検証に使用します。
 
@@ -896,7 +981,7 @@ export const updateUserSchema = z.object({
 export type UpdateUserFormData = z.infer<typeof updateUserSchema>
 ```
 
-#### 12.3. API型定義（Schema First）
+#### 13.3. API型定義（Schema First）
 
 API固有の型はSchemaから生成された型をベースに拡張します。
 
@@ -931,7 +1016,7 @@ export type CreateUserInput = Omit<InsertUser, 'id' | 'createdAt' | 'updatedAt'>
 export type UpdateUserInput = UpdateUser
 ```
 
-#### 12.4. 型のフロー
+#### 13.4. 型のフロー
 
 ```
 ┌─────────────────────────────────────────────────┐
@@ -961,7 +1046,7 @@ export type UpdateUserInput = UpdateUser
                   └─────────────────────────────────┘
 ```
 
-#### 12.5. importパスの規則
+#### 13.5. importパスの規則
 
 - ✅ **必須**: `_shared/`で始まるaliasを使用すること
 - ✅ **必須**: 相対パスではなく絶対パスを使用すること
@@ -976,7 +1061,7 @@ import { users } from '_shared/schemas/users'
 import type { User } from '../../_shared/types/users-api-types'
 ```
 
-#### 12.6. 型定義のベストプラクティス
+#### 13.6. 型定義のベストプラクティス
 
 **Schema First原則:**
 
@@ -1024,16 +1109,16 @@ interface UserListProps {
 }
 ```
 
-## 13. API設計パターン（MUST）
+## 14. API設計パターン（MUST）
 
-### 13.1. Middleware設計パターン
+### 14.1. Middleware設計パターン
 
 - ✅ **必須**: `initApi`と`apiHandler`パターンを使用すること
 - ✅ **必須**: try-catchは極力使用しない設計
 - ✅ **必須**: 統一されたエラー形式で返却
 - ✅ **必須**: グローバルミドルウェアによる共通処理の自動化
 
-#### 13.1.1. initApi関数とapiHandlerパターン
+#### 14.1.1. initApi関数とapiHandlerパターン
 
 ```typescript
 // _shared/middlewares/middleware.ts から提供される機能
@@ -1095,7 +1180,7 @@ export const validatedApiHandler = <T>(
 }
 ```
 
-#### 13.1.2. メインエントリポイント実装例
+#### 14.1.2. メインエントリポイント実装例
 
 ```typescript
 // users-api/index.ts
@@ -1130,7 +1215,7 @@ app.route('/members', membersApi)
 Deno.serve(app.fetch)
 ```
 
-#### 13.1.3. サブAPI実装例
+#### 14.1.3. サブAPI実装例
 
 ```typescript
 // users-api/rewards-api.ts
@@ -1170,16 +1255,16 @@ rewardsApi.get(
 export default rewardsApi
 ```
 
-### 13.2. Supabase Edge Functions/API設計原則
+### 14.2. Supabase Edge Functions/API設計原則
 
 - ✅ **必須**: APIは `supabase/functions/{resource}-api` として実装
 - ✅ **必須**: RESTful設計を基本とし、リソース単位でエンドポイントを分割
 - ✅ **必須**: サーバー側で認証・バリデーション・エラー処理を徹底
 - ✅ **必須**: レスポンスは必ずJSON形式、型定義を厳守
 - ✅ **必須**: ビジネスロジックはサービス層（`_shared/services/`）に分離
-- 📌 **参照**: ディレクトリ構成の詳細は[9.2. バックエンド（Supabase Edge Functions）](#92-バックエンドsupabase-edge-functions)を参照
+- 📌 **参照**: ディレクトリ構成の詳細は[10.2. バックエンド（Supabase Edge Functions）](#102-バックエンドsupabase-edge-functions)を参照
 
-### 13.3. サービス層（`_shared/services/`）の設計
+### 14.3. サービス層（`_shared/services/`）の設計
 
 - ✅ **必須**: 1つのサービスクラスは1つのビジネスドメインのみを担当
 - ✅ **必須**: データベースアクセス・トランザクション管理・ビジネスルールを担当
@@ -1215,7 +1300,7 @@ export class ProductService {
 }
 ```
 
-### 13.4. エンドポイント命名規則・resource分離
+### 14.4. エンドポイント命名規則・resource分離
 
 - ✅ **必須**: 1つのエンドポイントファイルは1つのリソース管理のみを担当
 - ✅ **必須**: リソース名は複数形、単語区切りはハイフン（-）
@@ -1223,7 +1308,7 @@ export class ProductService {
 - ✅ **必須**: エンドポイントファイルはルーティング・認証・レスポンス処理のみを担当
 - ✅ **必須**: 具体的な処理は対応するサービス層に委譲
 
-### 13.5. レスポンス形式の統一
+### 14.5. レスポンス形式の統一
 
 - ✅ **必須**: APIの成功レスポンスは `SuccessResponse` クラスを使用して統一
 
@@ -1247,7 +1332,7 @@ return new SuccessResponse({
 }
 ```
 
-### 13.6. `_shared` ディレクトリ管理ルール
+### 14.6. `_shared` ディレクトリ管理ルール
 
 - ✅ **必須**: `_shared`ディレクトリに新しいファイルを追加した場合は、必ず以下のファイルを更新する
 
@@ -1270,11 +1355,11 @@ return new SuccessResponse({
 }
 ```
 
-## 14. データベース設計とマイグレーション（MUST）
+## 15. データベース設計とマイグレーション（MUST）
 
-### 14.1. データベースマイグレーションの流れ
+### 15.1. データベースマイグレーションの流れ
 
-#### 14.1.1. 基本的なマイグレーション作成手順
+#### 15.1.1. 基本的なマイグレーション作成手順
 
 1. **スキーマの定義**
     - `supabase/functions/_shared/schemas`ディレクトリにスキーマファイルを作成または編集
@@ -1299,39 +1384,39 @@ return new SuccessResponse({
     - 未適用のマイグレーションを自動的に適用
     - データベースの状態を最新に更新
 
-#### 14.1.2. マイグレーションのベストプラクティス
+#### 15.1.2. マイグレーションのベストプラクティス
 
 - ✅ **必須**: スキーマファースト - 常にスキーマ定義を更新してからマイグレーションを生成
 - ✅ **必須**: 命名規則 - マイグレーション名は「動作\_対象\_詳細」の形式を推奨
 - ✅ **必須**: レビュー必須 - 生成されたSQLファイルを必ず確認してから実行
 - ✅ **必須**: バックアップ - 本番環境では必ずバックアップを取ってから実行
 
-### 14.2. データベース設計のベストプラクティス
+### 15.2. データベース設計のベストプラクティス
 
-- 📌 **参照**: スキーマ定義の詳細は[12.1. Schema定義（Drizzle ORM）](#121-schema定義drizzle-orm)を参照
-- 📌 **参照**: 命名規則は[9.3. 命名規則](#93-命名規則)を参照
+- 📌 **参照**: スキーマ定義の詳細は[13.1. Schema定義（Drizzle ORM）](#131-schema定義drizzle-orm)を参照
+- 📌 **参照**: 命名規則は[10.3. 命名規則](#103-命名規則)を参照
 
-#### 14.2.1. インデックス設計
+#### 15.2.1. インデックス設計
 
 - ✅ **必須**: 頻繁に検索される外部キーには必ずインデックスを作成
 - ✅ **必須**: 複合インデックスはクエリパターンに合わせて設計
 - ✅ **必須**: ユニーク制約が必要な場合はユニークインデックスを使用
 
-#### 14.2.2. パフォーマンス最適化
+#### 15.2.2. パフォーマンス最適化
 
 - ✅ **必須**: N+1問題を避けるためJOINを適切に使用
 - ✅ **必須**: 大量データの場合はページネーションを実装
 - ✅ **必須**: 集計処理は可能な限りデータベース側で実行
 
-#### 14.2.3. セキュリティ
+#### 15.2.3. セキュリティ
 
 - ✅ **必須**: SQLインジェクション対策としてパラメータ化クエリを使用
 - ✅ **必須**: 機密データは暗号化して保存
 - ✅ **必須**: アクセス権限を適切に設定
 
-### 14.3. マイグレーション戦略
+### 15.3. マイグレーション戦略
 
-#### 14.3.1. 開発環境
+#### 15.3.1. 開発環境
 
 ```bash
 # スキーマ変更後、マイグレーション生成
@@ -1344,7 +1429,7 @@ npm run db:migrate
 npm run db:reset
 ```
 
-#### 14.3.2. 本番環境
+#### 15.3.2. 本番環境
 
 **事前準備（必須）:**
 
@@ -1365,7 +1450,7 @@ cat ./migrations/XXXX_add_new_feature.sql
 npm run db:migrate
 ```
 
-#### 14.3.3. ベストプラクティス
+#### 15.3.3. ベストプラクティス
 
 1. **破壊的変更の回避**
     - DROP TABLE/COLUMNは極力避ける
@@ -1383,9 +1468,9 @@ npm run db:migrate
     - 各マイグレーションの目的と影響をコメントで記載
     - 実行日時と実行者を記録
 
-## 15. 技術スタック（参考情報）
+## 16. 技術スタック（参考情報）
 
-### 15.1. フロントエンド技術選定
+### 16.1. フロントエンド技術選定
 
 **コアフレームワーク:**
 
@@ -1405,7 +1490,7 @@ npm run db:migrate
 - **React Hook Form 7.60.0** - フォーム管理
 - **Zod 4.1.9** - スキーマバリデーション
 
-### 15.2. バックエンド・データベース技術選定
+### 16.2. バックエンド・データベース技術選定
 
 **インフラストラクチャ:**
 
@@ -1418,7 +1503,7 @@ npm run db:migrate
 - **Hono** - 軽量WebフレームワークをEdge Functionsで使用
 - **Drizzle ORM** - TypeScript型安全なORM
 
-### 15.3. 開発ツール
+### 16.3. 開発ツール
 
 **コード品質:**
 

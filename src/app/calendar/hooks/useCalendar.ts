@@ -1,9 +1,9 @@
-import { useState, useCallback, useMemo } from 'react'
 import {
     useTodayEventsQuery,
     useUpcomingEventsQuery,
 } from '@/src/app/calendar/api/event-query'
 import type { Event, UpcomingEvent } from '@/src/models/Event'
+import { useCallback, useMemo, useState } from 'react'
 
 export type ViewMode = 'day' | 'week' | 'month'
 
