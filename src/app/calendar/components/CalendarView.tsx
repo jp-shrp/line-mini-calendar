@@ -1,9 +1,8 @@
 import type { FC } from 'react'
+import type { ViewMode } from '@/src/app/calendar/hooks/useCalendar'
 import DayView from './DayView'
 import WeekView from './WeekView'
 import MonthView from './MonthView'
-
-type ViewMode = 'day' | 'week' | 'month'
 
 interface CalendarViewProps {
     viewMode: ViewMode

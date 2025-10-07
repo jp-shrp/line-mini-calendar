@@ -5,6 +5,8 @@ import {
 } from '@/src/app/calendar/api/event-query'
 import type { Event, UpcomingEvent } from '@/src/models/Event'
 
+export type ViewMode = 'day' | 'week' | 'month'
+
 /**
  * APIイベントを画面表示用のEvent型に変換
  */
@@ -76,6 +78,7 @@ const convertToUpcomingEvent = (apiEvent: {
 export const useCalendar = () => {
     const [selectedDate, setSelectedDate] = useState<Date>(new Date())
     const [displayMonth, setDisplayMonth] = useState<Date>(new Date())
+    const [viewMode, setViewMode] = useState<ViewMode>('month')
 
     // 今日のイベント一覧を取得
     const {
@@ -110,13 +113,14 @@ export const useCalendar = () => {
         setDisplayMonth(date)
     }, [])
 
-    const handleViewModeToggle = useCallback(() => {
-        // 月表示切り替えロジック（今後実装）
+    const handleViewModeChange = useCallback((mode: ViewMode) => {
+        setViewMode(mode)
     }, [])
 
     return {
         selectedDate,
         displayMonth,
+        viewMode,
         todayEvents,
         upcomingEvents,
         isTodayEventsLoading,
@@ -125,6 +129,6 @@ export const useCalendar = () => {
         upcomingEventsError,
         handleDateChange,
         handleMonthChange,
-        handleViewModeToggle,
+        handleViewModeChange,
     }
 }
