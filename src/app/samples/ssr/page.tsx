@@ -29,6 +29,7 @@ export default async function SSRSamplePage() {
     const supabase = createSupabaseClient()
 
     // SSRでcallEdgeFunctionを使用してデータを取得
+    // try-catchは行わず、エラー時はNext.jsのError Boundaryに委ねる
     const data = await supabaseApiClient.callEdgeFunction<UsersResponse>(
         async () => {
             return supabase.functions.invoke('samples-api/users', {
@@ -36,10 +37,7 @@ export default async function SSRSamplePage() {
             })
         },
         {
-            error: {
-                title: 'ユーザー取得エラー',
-                message: 'ユーザー一覧の取得に失敗しました',
-            },
+            customErrorMessage: 'ユーザー一覧の取得に失敗しました',
         }
     )
 

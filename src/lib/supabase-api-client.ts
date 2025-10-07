@@ -3,6 +3,7 @@ import type {
     StandardApiError,
     SuccessResponse,
 } from '@/src/types/api'
+import { CustomError } from '@/src/types/api'
 
 /**
  * Supabase Edge Functions用のAPIクライアント
@@ -27,52 +28,24 @@ class SupabaseApiClient {
                 // レスポンスボディをJSONとして取得
                 let errorBody: any = null
                 try {
-                    // Supabase Edge Functionsからのレスポンスは既にクライアントによってパースされている可能性がある
-                    // response.dataにnullが入っているが、エラーの詳細はresponse.responseから取得する必要がある
-
-                    // HTTPレスポンスボディを読み取る
-                    // 注: Fetch APIのResponseオブジェクトの場合、bodyは既に消費されている可能性がある
-                    // Supabaseクライアントがエラー時にボディを読み取っていない可能性を考慮
-
-                    // まず、error.contextをチェック
-                    if (
+                    // Supabase Edge Functionsからのレスポンスは response.data にJSON形式で入っている
+                    // エラー時も response.data にエラーオブジェクトが入っている
+                    if (response.data && typeof response.data === 'object') {
+                        errorBody = response.data
+                    }
+                    // fallback: error.contextをチェック
+                    else if (
                         response.error.context &&
                         Object.keys(response.error.context).length > 0
                     ) {
                         errorBody = response.error.context
                     }
-                    // 次に、response.error.messageがJSON文字列かチェック
+                    // fallback: response.error.messageがJSON文字列かチェック
                     else if (
                         typeof response.error.message === 'string' &&
                         response.error.message.trim().startsWith('{')
                     ) {
                         errorBody = JSON.parse(response.error.message)
-                    }
-                    // HTTPレスポンスから直接読み取れるか試行
-                    else if (httpResponse) {
-                        // cloneしてtextを読み取ることを試みる
-                        // ただし、既に消費されている場合は失敗する
-                        try {
-                            const responseClone = httpResponse.clone?.()
-                            if (
-                                responseClone &&
-                                typeof responseClone.text === 'function'
-                            ) {
-                                const bodyText = await responseClone.text()
-                                if (
-                                    bodyText &&
-                                    bodyText.trim().startsWith('{')
-                                ) {
-                                    errorBody = JSON.parse(bodyText)
-                                }
-                            }
-                        } catch (cloneError) {
-                            // clone/text読み取りに失敗した場合は無視
-                            console.log(
-                                'Failed to read response body:',
-                                cloneError
-                            )
-                        }
                     }
                 } catch (parseError) {
                     console.log('Error parsing response body:', parseError)
@@ -97,6 +70,17 @@ class SupabaseApiClient {
                     status: errorBody?.status || httpStatus,
                     details: errorBody?.details,
                 }
+
+                // customErrorMessageが指定されている場合はCustomErrorをthrow
+                if (options.customErrorMessage) {
+                    throw new CustomError(options.customErrorMessage, {
+                        status: error.status,
+                        code: error.code,
+                        title: error.title,
+                        details: error.details,
+                    })
+                }
+
                 throw error
             }
 
@@ -104,6 +88,11 @@ class SupabaseApiClient {
             const data: SuccessResponse<T> = response.data
             return data.data
         } catch (error) {
+            // CustomError形式のエラーはそのままスロー
+            if (error instanceof CustomError) {
+                throw error
+            }
+
             // StandardApiError形式のエラーはそのままスロー
             if (
                 error &&
