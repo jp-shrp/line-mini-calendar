@@ -11,6 +11,7 @@ import type { SelectUser } from '_shared/schemas/users'
 import {
     createEvent,
     deleteEvent,
+    getEventById,
     getEvents,
     updateEvent,
 } from '_shared/services/eventService'
@@ -90,6 +91,38 @@ app.get(
             new SuccessResponse({
                 data: response,
                 message: 'イベント一覧を取得しました',
+            })
+        )
+    })
+)
+
+/**
+ * イベント詳細取得API
+ * GET /calendar-api/events/:id
+ *
+ * TODO: 認証を一時的に無効化（開発用）
+ */
+app.get(
+    '/events/:id',
+    // authMiddleware, // 一時的にコメントアウト
+    apiHandler(async (c) => {
+        // const user = c.get('user') as SelectUser
+        // 開発用: ダミーユーザーID（UUID形式）
+        const userId = DUMMY_USER_ID
+        const eventId = c.req.param('id')
+
+        // イベント詳細取得
+        const event = await getEventById(eventId, userId)
+
+        // レスポンス作成
+        const response: EventDetailResponse = {
+            event,
+        }
+
+        return c.json(
+            new SuccessResponse({
+                data: response,
+                message: 'イベント詳細を取得しました',
             })
         )
     })

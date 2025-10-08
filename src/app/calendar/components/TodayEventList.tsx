@@ -1,6 +1,6 @@
-import type { FC } from 'react'
-import { Event } from '@/src/models/Event'
 import EventCard from '@/src/app/calendar/components/EventCard'
+import { Event } from '@/src/models/Event'
+import type { FC } from 'react'
 
 interface TodayEventListProps {
     events: Event[]
@@ -12,7 +12,7 @@ const TodayEventList: FC<TodayEventListProps> = ({ events }) => {
     }
 
     return (
-        <div className="mb-8">
+        <div className="mt-3 mb-8">
             <h2 className="mb-4 text-lg font-bold">今日の予定</h2>
             <div className="space-y-3">
                 {events.map((event) => (

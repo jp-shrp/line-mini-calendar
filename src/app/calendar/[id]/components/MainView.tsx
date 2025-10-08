@@ -1,6 +1,8 @@
 import type { FC } from 'react'
 import { formatJST } from '@/src/lib/date-utils'
 import type { useEventDetail } from '../hooks/useEventDetail'
+import { QueryStateHandler } from '@/src/components/QueryStateHandler'
+import { Event } from '@/src/models/Event'
 
 type MainViewProps = ReturnType<typeof useEventDetail>
 
@@ -10,7 +12,7 @@ type MainViewProps = ReturnType<typeof useEventDetail>
  * @description
  * Presentational Component
  * Hook+Viewパターンに従い、表示ロジックのみを担当
- * Early returnパターンを使用（三項演算子禁止）
+ * QueryStateHandlerでエラーハンドリングを統一
  */
 const MainView: FC<MainViewProps> = ({
     event,
@@ -20,35 +22,56 @@ const MainView: FC<MainViewProps> = ({
     handleOpenDeleteDialog,
     handleBack,
 }) => {
-    if (isLoading) {
-        return (
-            <div className="flex min-h-screen items-center justify-center">
-                <p className="text-gray-600">読み込み中...</p>
-            </div>
-        )
-    }
+    return (
+        <QueryStateHandler
+            data={event}
+            isLoading={isLoading}
+            error={error}
+            useGlobalLoading={true}
+            loadingMessage="イベント情報を読み込んでいます..."
+            notFoundMessage="イベントが見つかりません">
+            {(eventData) => {
+                if (!eventData) {
+                    return null
+                }
 
-    if (error) {
-        return (
-            <div className="flex min-h-screen items-center justify-center">
-                <p className="text-red-600">
-                    エラーが発生しました。もう一度お試しください。
-                </p>
-            </div>
-        )
-    }
+                const eventModel = new Event(eventData)
+                const startDate = formatJST(eventModel.startDatetime)
+                const endDate = formatJST(eventModel.endDatetime)
 
-    if (!event) {
-        return (
-            <div className="flex min-h-screen items-center justify-center">
-                <p className="text-gray-600">イベントが見つかりません</p>
-            </div>
-        )
-    }
+                return (
+                    <EventDetailContent
+                        event={eventModel}
+                        startDate={startDate}
+                        endDate={endDate}
+                        handleEdit={handleEdit}
+                        handleOpenDeleteDialog={handleOpenDeleteDialog}
+                        handleBack={handleBack}
+                    />
+                )
+            }}
+        </QueryStateHandler>
+    )
+}
 
-    const startDate = formatJST(event.startDatetime)
-    const endDate = formatJST(event.endDatetime)
-
+/**
+ * イベント詳細コンテンツコンポーネント
+ */
+const EventDetailContent: FC<{
+    event: Event
+    startDate: string
+    endDate: string
+    handleEdit: () => void
+    handleOpenDeleteDialog: () => void
+    handleBack: () => void
+}> = ({
+    event,
+    startDate,
+    endDate,
+    handleEdit,
+    handleOpenDeleteDialog,
+    handleBack,
+}) => {
     return (
         <div className="min-h-screen bg-gray-50">
             <div className="mx-auto max-w-2xl p-4">
