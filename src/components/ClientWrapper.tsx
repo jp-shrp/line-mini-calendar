@@ -2,6 +2,7 @@
 import { LoadingProvider } from '@/src/contexts/LoadingContext'
 import { ModalProvider, useModal } from '@/src/contexts/ModalContext'
 import { OnLoadingProvider } from '@/src/contexts/OnLoadingContext'
+import { AuthProvider } from '@/src/contexts/AuthContext'
 import { queryClient, setGlobalErrorHandler } from '@/src/lib/query-client'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { ReactNode, useEffect } from 'react'
@@ -18,7 +19,46 @@ function ErrorHandlerSetup({ children }: { children: ReactNode }) {
     const { openModal } = useModal()
 
     useEffect(() => {
-        setGlobalErrorHandler((error: any) => {
+        setGlobalErrorHandler(async (error: any) => {
+            // 401エラーの場合は自動的にサインアウトして再ログイン
+            if (error?.status === 401) {
+                const { getSupabaseClient } = await import('@/db/supabase')
+                const { generateDeterministicUUID } = await import(
+                    '@/src/lib/deterministic-uuid'
+                )
+                const supabase = getSupabaseClient()
+
+                // サインアウト
+                await supabase.auth.signOut()
+
+                // 決定論的UUIDを生成
+                const deviceId = await generateDeterministicUUID()
+
+                // auth-apiの/anonymous-loginエンドポイントを使用
+                const response = await supabase.functions.invoke(
+                    'auth-api/anonymous-login',
+                    {
+                        method: 'POST',
+                        body: { deviceId },
+                    }
+                )
+
+                if (!response.error && response.data?.data?.session) {
+                    const { session: newSession } = response.data.data
+
+                    // セッションを設定
+                    await supabase.auth.setSession({
+                        access_token: newSession.access_token,
+                        refresh_token: newSession.refresh_token,
+                    })
+
+                    // 再ログイン成功したらページをリロード
+                    window.location.reload()
+                    return
+                }
+            }
+
+            // 401以外のエラーはモーダル表示
             openModal({
                 title: error?.title || 'エラーが発生しました',
                 content: error?.message || '予期しないエラーが発生しました',
@@ -36,7 +76,9 @@ export default function ClientWrapper({ children }: ClientWrapperProps) {
             <LoadingProvider>
                 <ModalProvider>
                     <ErrorHandlerSetup>
-                        <OnLoadingProvider>{children}</OnLoadingProvider>
+                        <OnLoadingProvider>
+                            <AuthProvider>{children}</AuthProvider>
+                        </OnLoadingProvider>
                     </ErrorHandlerSetup>
                 </ModalProvider>
             </LoadingProvider>

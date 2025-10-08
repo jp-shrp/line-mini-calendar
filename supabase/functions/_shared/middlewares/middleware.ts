@@ -1,8 +1,6 @@
 import { getErrorMessage } from '_shared/errorMessages'
-import { users } from '_shared/schemas/users'
 import { ERROR_CODES, type ErrorCode } from '_shared/types/common/errors'
 import { SuccessResponse } from '_shared/types/responses'
-import { db } from 'db'
 import {
     Hono,
     type Context,
@@ -11,7 +9,7 @@ import {
     type Next,
 } from 'hono'
 import { cors } from 'hono/cors'
-import { createClient } from 'imports'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { z, ZodError } from 'zod'
 
 /**
@@ -23,7 +21,7 @@ import { z, ZodError } from 'zod'
 export function createSupabaseClient(req: Request) {
     // ヘッダーからAuthorizationを取得
     const authHeader = req.headers.get('Authorization')
-    const supabaseUrl = Deno.env.get('RAW_SUPABASE_URL') ?? ''
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
     const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
 
     return createClient(supabaseUrl, serviceRoleKey, {
@@ -65,15 +63,8 @@ export const authMiddleware: MiddlewareHandler = async (
             throw createUnauthorizedError()
         }
 
-        // ガード句: ユーザーレコード存在チェック
-        const d = await db.select({ users }).from(users).limit(1)
-
-        if (!d[0]?.users) {
-            throw createUnauthorizedError('User not found in database')
-        }
-
         // ユーザー情報をコンテキストに保存
-        c.set('user', d[0].users)
+        c.set('user', user)
         c.set('supabase', supabase)
 
         await next()

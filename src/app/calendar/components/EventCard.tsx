@@ -22,7 +22,8 @@ const EventCard: FC<EventCardProps> = ({ event }) => {
             </div>
             <button
                 onClick={handleClick}
-                className={`flex flex-1 cursor-pointer items-center gap-3 rounded-2xl bg-[${event.colorClass}] p-4 text-white transition-opacity hover:opacity-90`}>
+                style={{ background: event.colorClass }} // guideline違反ではあるが、動的colorなので必要
+                className={`flex flex-1 cursor-pointer items-center gap-3 rounded-2xl p-4 text-white transition-opacity hover:opacity-90`}>
                 {event.icon && (
                     <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-lg bg-white">
                         <span className="text-2xl">{event.icon}</span>

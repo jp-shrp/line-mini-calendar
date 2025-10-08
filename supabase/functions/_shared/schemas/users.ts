@@ -10,7 +10,7 @@ import { pgTable, text, timestamp, uuid, varchar } from 'drizzle-orm/pg-core'
  * Email/Password認証とLINE認証の両方に対応
  */
 export const users = pgTable('users', {
-    id: uuid('id').primaryKey().defaultRandom(),
+    id: uuid('id').primaryKey(), // auth.users.id と同じ値を使用するため defaultRandom を削除
     lineUserId: varchar('line_user_id', { length: 255 }).unique(),
     displayName: varchar('display_name', { length: 100 }),
     profileImage: text('profile_image'),

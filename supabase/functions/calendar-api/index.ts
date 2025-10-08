@@ -1,11 +1,10 @@
 import {
     apiHandler,
-    // authMiddleware, // 一時的にコメントアウト（開発用）
+    authMiddleware,
     initApi,
     validatedApiHandler,
     type Variables,
 } from '_shared/middlewares/middleware'
-import { parseJSTtoUTC } from '_shared/utils/date-utils'
 import { getPaginationInfoFromRequest } from '_shared/paginationUtility'
 import type { SelectUser } from '_shared/schemas/users'
 import {
@@ -21,13 +20,14 @@ import type {
     EventsListResponse,
 } from '_shared/types/events-api-types'
 import { SuccessResponse } from '_shared/types/responses'
+import { parseJSTtoUTC } from '_shared/utils/date-utils'
 import {
     createEventSchema,
     updateEventSchema,
 } from '_shared/validations/eventsValidation'
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 
-const DUMMY_USER_ID = 'c5f42133-6d0f-478d-8645-73e393aed5cb'
+// const DUMMY_USER_ID = 'c5f42133-6d0f-478d-8645-73e393aed5cb' // 開発用ダミーID（現在は未使用）
 
 // 型拡張 - Honoのコンテキストにユーザー情報を追加
 export type CalendarVariables = Variables & {
@@ -58,11 +58,10 @@ app.get(
  */
 app.get(
     '/events',
-    // authMiddleware, // 一時的にコメントアウト
+    authMiddleware,
     apiHandler(async (c) => {
-        // const user = c.get('user') as SelectUser
-        // 開発用: ダミーユーザーID（UUID形式）
-        const userId = DUMMY_USER_ID
+        const user = c.get('user') as SelectUser
+        const userId = user.id
         const pagination = getPaginationInfoFromRequest(c)
 
         // クエリパラメータの取得
@@ -104,11 +103,10 @@ app.get(
  */
 app.get(
     '/events/:id',
-    // authMiddleware, // 一時的にコメントアウト
+    authMiddleware,
     apiHandler(async (c) => {
-        // const user = c.get('user') as SelectUser
-        // 開発用: ダミーユーザーID（UUID形式）
-        const userId = DUMMY_USER_ID
+        const user = c.get('user') as SelectUser
+        const userId = user.id
         const eventId = c.req.param('id')
 
         // イベント詳細取得
@@ -136,11 +134,10 @@ app.get(
  */
 app.post(
     '/events',
-    // authMiddleware, // 一時的にコメントアウト
+    authMiddleware,
     validatedApiHandler(createEventSchema, async (c, validatedData) => {
-        // const user = c.get('user') as SelectUser
-        // 開発用: ダミーユーザーID（UUID形式）
-        const userId = DUMMY_USER_ID
+        const user = c.get('user') as SelectUser
+        const userId = user.id
 
         // イベント作成
         // フロントから送信されたdatetime-local形式の文字列を日本時間として解釈し、UTCに変換
@@ -177,11 +174,10 @@ app.post(
  */
 app.put(
     '/events/:id',
-    // authMiddleware, // 一時的にコメントアウト
+    authMiddleware,
     validatedApiHandler(updateEventSchema, async (c, validatedData) => {
-        // const user = c.get('user') as SelectUser
-        // 開発用: ダミーユーザーID（UUID形式）
-        const userId = DUMMY_USER_ID
+        const user = c.get('user') as SelectUser
+        const userId = user.id
         const eventId = c.req.param('id')
 
         // イベント更新データの準備
@@ -246,11 +242,10 @@ app.put(
  */
 app.delete(
     '/events/:id',
-    // authMiddleware, // 一時的にコメントアウト
+    authMiddleware,
     apiHandler(async (c) => {
-        // const user = c.get('user') as SelectUser
-        // 開発用: ダミーユーザーID（UUID形式）
-        const userId = DUMMY_USER_ID
+        const user = c.get('user') as SelectUser
+        const userId = user.id
         const eventId = c.req.param('id')
 
         // イベント削除（ソフトデリート）

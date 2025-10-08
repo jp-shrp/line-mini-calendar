@@ -16,7 +16,8 @@ const UpcomingEventCard: FC<UpcomingEventCardProps> = ({ event }) => {
     return (
         <button
             onClick={handleClick}
-            className={`flex items-center gap-4 rounded-2xl bg-[${event.colorClass}] w-full cursor-pointer p-4 text-white transition-opacity hover:opacity-90`}>
+            style={{ background: event.colorClass }} // guideline違反ではあるが動的colorなので必要
+            className={`flex w-full cursor-pointer items-center gap-4 rounded-2xl p-4 text-white transition-opacity hover:opacity-90`}>
             <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-lg bg-white">
                 <svg
                     className="h-6 w-6 text-purple-500"

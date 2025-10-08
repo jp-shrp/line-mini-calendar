@@ -1,5 +1,5 @@
 import { createBrowserClient } from '@supabase/ssr'
-import { createClient } from '@supabase/supabase-js'
+import { createClient, SupabaseClient } from '@supabase/supabase-js'
 
 // 環境変数の取得
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
@@ -10,7 +10,12 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
  * ブラウザ環境で使用し、自動的にCookieを通じてセッション管理を行う
  */
 export const createSupabaseClient = () => {
-    return createBrowserClient(supabaseUrl, supabaseAnonKey)
+    return createBrowserClient(supabaseUrl, supabaseAnonKey, {
+        auth: {
+            autoRefreshToken: true,
+            persistSession: true,
+        },
+    })
 }
 
 /**
@@ -35,9 +40,9 @@ export const createSupabaseAdminClient = () => {
 /**
  * シングルトンパターンでクライアントを管理
  */
-let browserClient: ReturnType<typeof createBrowserClient> | null = null
+let browserClient: SupabaseClient | null = null
 
-export const getSupabaseClient = () => {
+export const getSupabaseClient = (): SupabaseClient => {
     if (typeof window === 'undefined') {
         // サーバーサイドでは毎回新しいクライアントを作成
         return createSupabaseClient()
@@ -48,5 +53,5 @@ export const getSupabaseClient = () => {
         browserClient = createSupabaseClient()
     }
 
-    return browserClient
+    return browserClient!
 }
