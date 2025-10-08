@@ -6,6 +6,9 @@ import { supabaseApiClient } from '@/src/lib/supabase-api-client'
  * Server Componentでsupabase.functions.invokeを使用してデータを取得する例
  */
 
+// ビルド時にプリレンダリングしない（実行時のみ）
+export const dynamic = 'force-dynamic'
+
 interface User {
     id: string
     email: string

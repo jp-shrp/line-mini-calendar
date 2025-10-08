@@ -6,6 +6,9 @@ import { supabaseApiClient } from '@/src/lib/supabase-api-client'
  * Server Componentで意図的に500エラーを発生させて、エラーハンドリングの動作を確認する
  */
 
+// ビルド時にプリレンダリングしない（実行時のみ）
+export const dynamic = 'force-dynamic'
+
 export default async function SSR500ErrorPage() {
     const supabase = createSupabaseClient()
 
