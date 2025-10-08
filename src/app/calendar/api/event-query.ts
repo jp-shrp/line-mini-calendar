@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { useSupabaseQuery } from '@/src/hooks/useSupabaseQuery'
 import { eventQueryKeys } from './query-key'
+import { getJSTDayRangeInUTC } from '@/src/lib/date-utils'
 import type {
     EventsListResponse,
     EventDetailResponse,
@@ -43,15 +44,8 @@ export const useEventDetailQuery = (eventId: string, enabled = true) => {
 export const useTodayEventsQuery = () => {
     // 日付文字列を固定化（日付が変わるまで同じ値を返す）
     const dateRange = useMemo(() => {
-        const now = new Date()
-        const year = now.getFullYear()
-        const month = String(now.getMonth() + 1).padStart(2, '0')
-        const day = String(now.getDate()).padStart(2, '0')
-
-        const startOfDay = `${year}-${month}-${day}T00:00:00.000Z`
-        const endOfDay = `${year}-${month}-${day}T23:59:59.999Z`
-
-        return { startOfDay, endOfDay }
+        // 日本時間の今日の範囲をUTCに変換
+        return getJSTDayRangeInUTC()
     }, [])
 
     return useSupabaseQuery<EventsListResponse>({
@@ -78,14 +72,9 @@ export const useTodayEventsQuery = () => {
 export const useUpcomingEventsQuery = (limit = 5) => {
     // 現在日時を固定化（分単位で固定して安定化）
     const startDate = useMemo(() => {
+        // 現在時刻をそのままUTCのISO文字列として取得
         const now = new Date()
-        const year = now.getFullYear()
-        const month = String(now.getMonth() + 1).padStart(2, '0')
-        const day = String(now.getDate()).padStart(2, '0')
-        const hours = String(now.getHours()).padStart(2, '0')
-        const minutes = String(now.getMinutes()).padStart(2, '0')
-
-        return `${year}-${month}-${day}T${hours}:${minutes}:00.000Z`
+        return now.toISOString()
     }, [])
 
     return useSupabaseQuery<EventsListResponse>({
