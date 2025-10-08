@@ -1,11 +1,13 @@
 /**
  * 匿名認証Hook
  * アプリケーション起動時に自動で匿名ログインを実行します
+ * 決定論的UUIDを使用して、同じデバイスからは常に同じユーザーIDでログインします
  */
 
 'use client'
 
 import { getSupabaseClient } from '@/db/supabase'
+import { generateDeterministicUUID } from '@/src/lib/deterministic-uuid'
 import { useEffect, useState } from 'react'
 
 interface UseAnonymousAuthReturn {
@@ -38,22 +40,47 @@ export function useAnonymousAuth(): UseAnonymousAuthReturn {
                     return
                 }
 
-                // Supabaseの匿名サインイン機能を使用
-                const { data, error } = await supabase.auth.signInAnonymously({
-                    options: {
-                        data: {
-                            display_name: 'Anonymous User',
-                            is_anonymous: true,
-                        },
-                    },
-                })
+                // 決定論的UUIDを生成
+                const deviceId = await generateDeterministicUUID()
 
-                if (error) {
-                    throw error
+                // auth-apiの/anonymous-loginエンドポイントを使用
+                const response = await supabase.functions.invoke(
+                    'auth-api/anonymous-login',
+                    {
+                        method: 'POST',
+                        body: { deviceId },
+                    }
+                )
+
+                if (response.error) {
+                    throw new Error(
+                        response.error.message || '匿名ログインに失敗しました'
+                    )
                 }
 
-                if (data?.user) {
-                    setUserId(data.user.id)
+                const { session: newSession } = response.data.data
+
+                if (!newSession) {
+                    throw new Error('セッション情報が取得できませんでした')
+                }
+
+                // セッションを設定
+                const { error: sessionError } = await supabase.auth.setSession({
+                    access_token: newSession.access_token,
+                    refresh_token: newSession.refresh_token,
+                })
+
+                if (sessionError) {
+                    throw sessionError
+                }
+
+                // ユーザー情報を更新
+                const {
+                    data: { user },
+                } = await supabase.auth.getUser()
+
+                if (user) {
+                    setUserId(user.id)
                     setIsAuthenticated(true)
                 }
             } catch (err) {

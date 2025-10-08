@@ -23,23 +23,35 @@ function ErrorHandlerSetup({ children }: { children: ReactNode }) {
             // 401エラーの場合は自動的にサインアウトして再ログイン
             if (error?.status === 401) {
                 const { getSupabaseClient } = await import('@/db/supabase')
+                const { generateDeterministicUUID } = await import(
+                    '@/src/lib/deterministic-uuid'
+                )
                 const supabase = getSupabaseClient()
 
                 // サインアウト
                 await supabase.auth.signOut()
 
-                // 再ログイン
-                const { error: signInError } =
-                    await supabase.auth.signInAnonymously({
-                        options: {
-                            data: {
-                                display_name: 'Anonymous User',
-                                is_anonymous: true,
-                            },
-                        },
+                // 決定論的UUIDを生成
+                const deviceId = await generateDeterministicUUID()
+
+                // auth-apiの/anonymous-loginエンドポイントを使用
+                const response = await supabase.functions.invoke(
+                    'auth-api/anonymous-login',
+                    {
+                        method: 'POST',
+                        body: { deviceId },
+                    }
+                )
+
+                if (!response.error && response.data?.data?.session) {
+                    const { session: newSession } = response.data.data
+
+                    // セッションを設定
+                    await supabase.auth.setSession({
+                        access_token: newSession.access_token,
+                        refresh_token: newSession.refresh_token,
                     })
 
-                if (!signInError) {
                     // 再ログイン成功したらページをリロード
                     window.location.reload()
                     return

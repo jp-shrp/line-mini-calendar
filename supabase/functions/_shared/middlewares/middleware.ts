@@ -9,7 +9,7 @@ import {
     type Next,
 } from 'hono'
 import { cors } from 'hono/cors'
-import { createClient } from 'imports'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { z, ZodError } from 'zod'
 
 /**
