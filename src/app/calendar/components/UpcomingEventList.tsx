@@ -1,6 +1,7 @@
 import type { FC } from 'react'
 import { Event } from '@/src/models/Event'
 import UpcomingEventCard from '@/src/app/calendar/components/UpcomingEventCard'
+import Link from 'next/link'
 
 interface UpcomingEventListProps {
     events: Event[]
@@ -15,9 +16,11 @@ const UpcomingEventList: FC<UpcomingEventListProps> = ({ events }) => {
         <div className="mb-8">
             <div className="mb-4 flex items-center justify-between">
                 <h2 className="text-lg font-bold">今後のイベント</h2>
-                <button className="text-sm text-gray-600 hover:text-gray-800">
+                <Link
+                    href="/calendar/list"
+                    className="text-sm text-gray-600 hover:text-gray-800">
                     全て表示
-                </button>
+                </Link>
             </div>
             <p className="mb-4 text-sm text-gray-600">
                 明日以降に予定しているイベント

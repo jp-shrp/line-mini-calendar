@@ -76,7 +76,7 @@ export const updateEventSchema = z
             .optional(),
         iconUrl: z
             .string()
-            .url('有効なURLを入力してください')
+            //.url('有効なURLを入力してください')
             .optional()
             .transform((val) => val || undefined),
         startDatetime: z.string().optional(),
