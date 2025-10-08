@@ -52,7 +52,7 @@ app.get(
 /**
  * イベント一覧取得API
  * GET /calendar-api/events
- * クエリパラメータ: start_date, end_date, category, page, limit
+ * クエリパラメータ: startDate, endDate, category, page, limit
  *
  * TODO: 認証を一時的に無効化（開発用）
  */
@@ -65,8 +65,8 @@ app.get(
         const pagination = getPaginationInfoFromRequest(c)
 
         // クエリパラメータの取得
-        const startDate = c.req.query('start_date')
-        const endDate = c.req.query('end_date')
+        const startDate = c.req.query('startDate')
+        const endDate = c.req.query('endDate')
         const category = c.req.query('category')
 
         // イベント一覧取得

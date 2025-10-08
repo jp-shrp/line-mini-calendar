@@ -82,7 +82,9 @@
             "Bash(PGPASSWORD=postgres psql -h localhost -p 18766 -U postgres -d postgres -c \"SELECT id, display_name, created_at FROM public.users ORDER BY created_at DESC LIMIT 5;\")",
             "Bash(docker exec:*)",
             "mcp__playwright__browser_select_option",
-            "Bash(yarn build)"
+            "Bash(yarn build)",
+            "Bash(PGPASSWORD=postgres psql -h localhost -p 18766 -U postgres -d postgres -c \"SELECT id, title, start_datetime, end_datetime, user_id FROM events WHERE user_id = ''2e6bfa16-6aee-41e6-adb1-f7878887a942'' AND is_deleted = false ORDER BY start_datetime;\")",
+            "mcp__playwright__browser_evaluate"
         ],
         "deny": [],
         "ask": []

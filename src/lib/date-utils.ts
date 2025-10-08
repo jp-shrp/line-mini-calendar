@@ -62,3 +62,39 @@ export const parseJSTtoUTC = (datetimeLocal: string): Date => {
     // datetime-local形式の文字列を日本時間として解釈
     return fromZonedTime(datetimeLocal, 'Asia/Tokyo')
 }
+
+/**
+ * 日本時間の1日の開始・終了時刻をUTC ISO文字列で取得
+ *
+ * @param date 対象日（省略時は今日）
+ * @returns 日本時間の00:00:00〜23:59:59をUTCに変換したISO文字列
+ *
+ * @example
+ * // 日本時間 2025-10-08 を指定した場合
+ * getJSTDayRangeInUTC(new Date('2025-10-08'))
+ * // => {
+ * //   startOfDay: '2025-10-07T15:00:00.000Z',  // JST 2025-10-08 00:00:00
+ * //   endOfDay: '2025-10-08T14:59:59.999Z'     // JST 2025-10-08 23:59:59
+ * // }
+ */
+export const getJSTDayRangeInUTC = (
+    date: Date = new Date()
+): { startOfDay: string; endOfDay: string } => {
+    // 日本時間での日付を取得
+    const jstDate = toZonedTime(date, 'Asia/Tokyo')
+    const year = jstDate.getFullYear()
+    const month = String(jstDate.getMonth() + 1).padStart(2, '0')
+    const day = String(jstDate.getDate()).padStart(2, '0')
+
+    // 日本時間の00:00:00と23:59:59を作成してUTCに変換
+    const startOfDayJST = `${year}-${month}-${day}T00:00:00`
+    const endOfDayJST = `${year}-${month}-${day}T23:59:59.999`
+
+    const startOfDayUTC = fromZonedTime(startOfDayJST, 'Asia/Tokyo')
+    const endOfDayUTC = fromZonedTime(endOfDayJST, 'Asia/Tokyo')
+
+    return {
+        startOfDay: startOfDayUTC.toISOString(),
+        endOfDay: endOfDayUTC.toISOString(),
+    }
+}

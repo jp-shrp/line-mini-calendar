@@ -4,7 +4,7 @@ import { events } from '_shared/schemas/events'
 import type { CreateEventInput } from '_shared/types/events-api-types'
 import type { PaginationInfo } from '_shared/types/pagination-types'
 import { db } from 'db'
-import { and, between, eq } from 'imports'
+import { and, eq, gte, lt } from 'imports'
 
 /**
  * イベント取得のクエリパラメータ
@@ -28,14 +28,23 @@ export async function getEvents(params: GetEventsParams) {
     // WHERE条件の構築
     const conditions = [eq(events.userId, userId), eq(events.isDeleted, false)]
 
+    // 日付フィルタリング
     if (startDate && endDate) {
-        conditions.push(
-            between(
-                events.startDatetime,
-                new Date(startDate),
-                new Date(endDate)
-            )
-        )
+        // 期間指定: イベントの開始日時が指定期間内にあるもののみを取得
+        // 開始日時 >= 指定期間開始 AND 開始日時 < 指定期間終了
+        const requestStartDate = new Date(startDate)
+        const requestEndDate = new Date(endDate)
+
+        conditions.push(gte(events.startDatetime, requestStartDate))
+        conditions.push(lt(events.startDatetime, requestEndDate))
+    } else if (startDate) {
+        // 開始日時のみ指定: その日時以降のイベントを取得
+        const requestStartDate = new Date(startDate)
+        conditions.push(gte(events.startDatetime, requestStartDate))
+    } else if (endDate) {
+        // 終了日時のみ指定: その日時以前のイベントを取得
+        const requestEndDate = new Date(endDate)
+        conditions.push(lt(events.startDatetime, requestEndDate))
     }
 
     if (category) {
