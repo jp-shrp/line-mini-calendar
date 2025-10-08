@@ -1,4 +1,5 @@
 import { formatJST } from '@/src/lib/date-utils'
+import { getCategoryColor } from '@/src/lib/category-utils'
 import { IIndexable, Model } from '@team-decorate/alcts'
 import { SelectEvent } from '_shared/schemas/events'
 
@@ -67,10 +68,15 @@ export class Event extends Model implements SelectEvent {
     }
 
     /**
-     * カラークラスを取得（デフォルトはbg-gray-500）
+     * カラークラスを取得
+     * カスタムカラーが設定されていればそれを使用、なければカテゴリカラーを使用
      */
     get colorClass(): string {
-        return this.color || 'bg-gray-500'
+        if (this.color) {
+            return this.color
+        }
+
+        return getCategoryColor(this.category)
     }
 }
 
