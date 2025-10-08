@@ -19,7 +19,34 @@ function ErrorHandlerSetup({ children }: { children: ReactNode }) {
     const { openModal } = useModal()
 
     useEffect(() => {
-        setGlobalErrorHandler((error: any) => {
+        setGlobalErrorHandler(async (error: any) => {
+            // 401エラーの場合は自動的にサインアウトして再ログイン
+            if (error?.status === 401) {
+                const { getSupabaseClient } = await import('@/db/supabase')
+                const supabase = getSupabaseClient()
+
+                // サインアウト
+                await supabase.auth.signOut()
+
+                // 再ログイン
+                const { error: signInError } =
+                    await supabase.auth.signInAnonymously({
+                        options: {
+                            data: {
+                                display_name: 'Anonymous User',
+                                is_anonymous: true,
+                            },
+                        },
+                    })
+
+                if (!signInError) {
+                    // 再ログイン成功したらページをリロード
+                    window.location.reload()
+                    return
+                }
+            }
+
+            // 401以外のエラーはモーダル表示
             openModal({
                 title: error?.title || 'エラーが発生しました',
                 content: error?.message || '予期しないエラーが発生しました',
