@@ -71,7 +71,7 @@ export const MainView: FC<MainViewProps> = ({ searchHook, registerHook }) => {
                             <h4 className="font-semibold">✨ AI登録機能</h4>
                             <ul className="mt-1 ml-4 list-disc space-y-1">
                                 <li>
-                                    「トットナムの試合を登録して」「Netflixの新作を追加」などと入力
+                                    「トッテナムの試合を登録して」「Netflixの新作を追加」などと入力
                                 </li>
                                 <li>
                                     AIがイベント登録の候補を生成（現在は一般的な情報のみ）

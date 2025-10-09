@@ -57,6 +57,24 @@ export const getUserByDeterministicId = async (
 }
 
 /**
+ * IDから決定論的なパスワードを生成する関数
+ * @param id - 任意のID文字列
+ * @returns 決定論的パスワード（hex string）
+ */
+export const generateDeterministicPassword = async (
+    id: string
+): Promise<string> => {
+    const encoder = new TextEncoder()
+    const data = encoder.encode(`password_${id}`)
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data)
+
+    const hashArray = new Uint8Array(hashBuffer)
+    return Array.from(hashArray)
+        .map((b) => b.toString(16).padStart(2, '0'))
+        .join('')
+}
+
+/**
  * 決定論的UUIDでユーザーを作成する
  * @param supabaseAdmin - Supabase Admin Client
  * @param id - ユーザー識別ID
@@ -74,6 +92,7 @@ export const createUserWithDeterministicId = async (
     }
 ) => {
     const deterministicUUID = await generateDeterministicUUID(id)
+    const deterministicPassword = await generateDeterministicPassword(id)
 
     const { data: newUser, error: createError } =
         await supabaseAdmin.auth.admin.createUser({
@@ -81,6 +100,7 @@ export const createUserWithDeterministicId = async (
             email: metadata.email,
             phone: metadata.phone,
             email_confirm: metadata.email_confirm ?? true,
+            password: deterministicPassword,
             user_metadata: metadata.user_metadata,
         })
 
@@ -132,18 +152,15 @@ export const updateUserMetadata = async (
 }
 
 /**
- * 匿名ユーザーを取得または作成し、セッションを生成
+ * 匿名ユーザーを取得または作成し、認証情報を返す
  */
 export const getOrCreateAnonymousUser = async (
     supabaseAdmin: ReturnType<typeof createSupabaseAdminClient>,
     deviceId: string
 ): Promise<{
     user: any
-    session: {
-        access_token: string
-        refresh_token: string
-        expires_at: number
-    }
+    email: string
+    password: string
 }> => {
     const anonymousId = `anonymous_${deviceId}`
 
@@ -185,46 +202,17 @@ export const getOrCreateAnonymousUser = async (
 
     const anonymousEmail =
         supabaseUser.email || `${supabaseUser.id}@anonymous.local`
-
-    const { data: linkData, error: sessionError } =
-        await supabaseAdmin.auth.admin.generateLink({
-            type: 'magiclink',
-            email: anonymousEmail,
-        })
-
-    if (sessionError || !linkData?.properties) {
-        throw createInternalServerError(
-            'Failed to generate session',
-            sessionError
-        )
-    }
-
-    // hashed_tokenを使ってセッションを生成
-    const { data: verifyData, error: verifyError } =
-        await supabaseAdmin.auth.verifyOtp({
-            token_hash: linkData.properties.hashed_token,
-            type: 'magiclink',
-        })
-
-    if (verifyError || !verifyData?.session) {
-        throw createInternalServerError(
-            'Failed to verify OTP and generate session',
-            verifyError
-        )
-    }
+    const password = await generateDeterministicPassword(anonymousId)
 
     return {
         user: supabaseUser,
-        session: {
-            access_token: verifyData.session.access_token,
-            refresh_token: verifyData.session.refresh_token,
-            expires_at: verifyData.session.expires_at || 0,
-        },
+        email: anonymousEmail,
+        password,
     }
 }
 
 /**
- * Auth0ユーザーを取得または作成し、セッションを生成
+ * Auth0ユーザーを取得または作成し、認証情報を返す
  */
 export const getOrCreateAuth0User = async (
     supabaseAdmin: ReturnType<typeof createSupabaseAdminClient>,
@@ -238,11 +226,8 @@ export const getOrCreateAuth0User = async (
     }
 ): Promise<{
     user: any
-    session: {
-        access_token: string
-        refresh_token: string
-        expires_at: number
-    }
+    email: string
+    password: string
 }> => {
     const auth0Id = auth0User.sub
     const existingUser = await getUserByDeterministicId(supabaseAdmin, auth0Id)
@@ -284,39 +269,11 @@ export const getOrCreateAuth0User = async (
         throw createInternalServerError('User email is required for session')
     }
 
-    const { data: linkData, error: sessionError } =
-        await supabaseAdmin.auth.admin.generateLink({
-            type: 'magiclink',
-            email: userEmail,
-        })
-
-    if (sessionError || !linkData?.properties) {
-        throw createInternalServerError(
-            'Failed to generate session',
-            sessionError
-        )
-    }
-
-    // hashed_tokenを使ってセッションを生成
-    const { data: verifyData, error: verifyError } =
-        await supabaseAdmin.auth.verifyOtp({
-            token_hash: linkData.properties.hashed_token,
-            type: 'magiclink',
-        })
-
-    if (verifyError || !verifyData?.session) {
-        throw createInternalServerError(
-            'Failed to verify OTP and generate session',
-            verifyError
-        )
-    }
+    const password = await generateDeterministicPassword(auth0Id)
 
     return {
         user: supabaseUser,
-        session: {
-            access_token: verifyData.session.access_token,
-            refresh_token: verifyData.session.refresh_token,
-            expires_at: verifyData.session.expires_at || 0,
-        },
+        email: userEmail,
+        password,
     }
 }

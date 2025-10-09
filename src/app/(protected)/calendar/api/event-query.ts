@@ -92,3 +92,30 @@ export const useUpcomingEventsQuery = (limit = 5) => {
         retry: 0,
     })
 }
+
+/**
+ * 選択日付のイベント一覧取得Query Hook
+ * @param selectedDate 選択された日付
+ * @returns 選択日付のイベント一覧データ
+ */
+export const useSelectedDateEventsQuery = (selectedDate: Date) => {
+    // 選択日付の範囲を取得（日本時間の1日の範囲をUTCに変換）
+    const dateRange = useMemo(() => {
+        return getJSTDayRangeInUTC(selectedDate)
+    }, [selectedDate.toDateString()])
+
+    return useSupabaseQuery<EventsListResponse>({
+        queryKey: [
+            ...eventQueryKeys.list({
+                startDate: dateRange.startOfDay,
+                endDate: dateRange.endOfDay,
+            }),
+        ] as string[],
+        functionName: 'calendar-api/events',
+        params: {
+            startDate: dateRange.startOfDay,
+            endDate: dateRange.endOfDay,
+        },
+        retry: 0,
+    })
+}

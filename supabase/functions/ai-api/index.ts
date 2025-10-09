@@ -11,6 +11,8 @@ import {
 } from '_shared/services/aiEventService'
 import { createEvent } from '_shared/services/eventService'
 import type {
+    AIBatchRegisterRequest,
+    AIBatchRegisterResponse,
     AIConfirmRegisterRequest,
     AIConfirmRegisterResponse,
     AIRegisterRequest,
@@ -90,13 +92,16 @@ app.post(
  *
  * リクエストボディ:
  * {
- *   "query": "トットナムの試合の日程を登録して"
+ *   "query": "トッテナムの試合の日程を登録して"
  * }
  */
 app.post(
     '/register',
     authMiddleware,
     apiHandler(async (c) => {
+        const user = c.get('user') as SelectUser
+        const userId = user.id
+
         const body = await c.req.json()
         const { query } = body as AIRegisterRequest
 
@@ -110,8 +115,8 @@ app.post(
             )
         }
 
-        // AI登録候補生成
-        const result = await aiGenerateEventCandidates(query)
+        // AI登録候補生成（重複チェック付き）
+        const result = await aiGenerateEventCandidates(userId, query)
 
         const response: AIRegisterResponse = result
 
@@ -183,6 +188,132 @@ app.post(
             new SuccessResponse({
                 data: response,
                 message: 'イベントを登録しました',
+            })
+        )
+    })
+)
+
+/**
+ * AIイベント一括登録API
+ * POST /ai-api/batch-register
+ *
+ * リクエストボディ:
+ * {
+ *   "candidateIndexes": [0, 1, 2],
+ *   "candidates": [...]
+ * }
+ */
+app.post(
+    '/batch-register',
+    authMiddleware,
+    apiHandler(async (c) => {
+        const user = c.get('user') as SelectUser
+        const userId = user.id
+
+        const body = await c.req.json()
+        const { candidateIndexes, candidates } = body as AIBatchRegisterRequest
+
+        if (
+            !Array.isArray(candidateIndexes) ||
+            !Array.isArray(candidates) ||
+            candidateIndexes.length === 0
+        ) {
+            return c.json(
+                {
+                    success: false,
+                    message: '有効な候補を選択してください',
+                },
+                400
+            )
+        }
+
+        // 選択されたインデックスが範囲内かチェック
+        for (const index of candidateIndexes) {
+            if (
+                typeof index !== 'number' ||
+                index < 0 ||
+                index >= candidates.length
+            ) {
+                return c.json(
+                    {
+                        success: false,
+                        message: '無効な候補インデックスが含まれています',
+                    },
+                    400
+                )
+            }
+        }
+
+        const events = []
+        const errors: Array<{ index: number; title: string; error: string }> =
+            []
+        let successCount = 0
+        let failureCount = 0
+
+        // 選択された候補を一つずつイベント作成
+        for (const index of candidateIndexes) {
+            try {
+                const selectedCandidate = candidates[index]
+
+                const eventData: CreateEventInput = {
+                    title: selectedCandidate.title,
+                    description: selectedCandidate.description,
+                    category: selectedCandidate.category,
+                    iconUrl: selectedCandidate.iconUrl,
+                    startDatetime: parseJSTtoUTC(
+                        selectedCandidate.startDatetime
+                    ),
+                    endDatetime: parseJSTtoUTC(selectedCandidate.endDatetime),
+                    color: selectedCandidate.color,
+                }
+
+                const newEvent = await createEvent(userId, eventData)
+                events.push(newEvent)
+                successCount++
+            } catch (error) {
+                const selectedCandidate = candidates[index]
+                const errorMessage =
+                    error instanceof Error ? error.message : String(error)
+                console.error(
+                    `Failed to create event at index ${index}:`,
+                    errorMessage
+                )
+                errors.push({
+                    index,
+                    title: selectedCandidate.title,
+                    error: errorMessage,
+                })
+                failureCount++
+            }
+        }
+
+        let aiMessage = ''
+        if (successCount > 0 && failureCount === 0) {
+            aiMessage = `${successCount}件のイベントをカレンダーに登録しました！`
+        } else if (successCount > 0 && failureCount > 0) {
+            aiMessage = `${successCount}件のイベントをカレンダーに登録しました（${failureCount}件失敗）`
+        } else {
+            aiMessage = `イベントの登録に失敗しました（${failureCount}件失敗）`
+        }
+
+        if (errors.length > 0) {
+            const errorDetails = errors
+                .map((e) => `・${e.title}: ${e.error}`)
+                .join('\n')
+            aiMessage += `\n\n失敗した理由:\n${errorDetails}`
+        }
+
+        const response: AIBatchRegisterResponse = {
+            events,
+            successCount,
+            failureCount,
+            aiMessage,
+        }
+
+        return c.json(
+            new SuccessResponse({
+                data: response,
+                message: `${successCount}件のイベントを登録しました`,
             })
         )
     })

@@ -24,26 +24,15 @@ export function useAnonymousAuth(): UseAnonymousAuthReturn {
     const [error, setError] = useState<Error | null>(null)
 
     useEffect(() => {
-        const authenticate = async () => {
-            const supabase = getSupabaseClient()
+        const supabase = getSupabaseClient()
+        let isReauthenticating = false
+
+        const performAnonymousLogin = async () => {
+            if (isReauthenticating) return
 
             try {
-                // 既存セッションを確認
-                const {
-                    data: { session },
-                } = await supabase.auth.getSession()
-
-                if (session?.user) {
-                    setUserId(session.user.id)
-                    setIsAuthenticated(true)
-                    setIsLoading(false)
-                    return
-                }
-
-                // 決定論的UUIDを生成
                 const deviceId = await generateDeterministicUUID()
 
-                // auth-apiの/anonymous-loginエンドポイントを使用
                 const response = await supabase.functions.invoke(
                     'auth-api/anonymous-login',
                     {
@@ -58,30 +47,26 @@ export function useAnonymousAuth(): UseAnonymousAuthReturn {
                     )
                 }
 
-                const { session: newSession } = response.data.data
+                const { email, password } = response.data.data
 
-                if (!newSession) {
-                    throw new Error('セッション情報が取得できませんでした')
+                if (!email || !password) {
+                    throw new Error('認証情報が取得できませんでした')
                 }
 
-                // セッションを設定
-                const { error: sessionError } = await supabase.auth.setSession({
-                    access_token: newSession.access_token,
-                    refresh_token: newSession.refresh_token,
-                })
+                const { data: signInData, error: signInError } =
+                    await supabase.auth.signInWithPassword({
+                        email,
+                        password,
+                    })
 
-                if (sessionError) {
-                    throw sessionError
+                if (signInError) {
+                    throw signInError
                 }
 
-                // ユーザー情報を更新
-                const {
-                    data: { user },
-                } = await supabase.auth.getUser()
-
-                if (user) {
-                    setUserId(user.id)
+                if (signInData.user) {
+                    setUserId(signInData.user.id)
                     setIsAuthenticated(true)
+                    setError(null)
                 }
             } catch (err) {
                 setError(
@@ -89,10 +74,60 @@ export function useAnonymousAuth(): UseAnonymousAuthReturn {
                 )
             } finally {
                 setIsLoading(false)
+                isReauthenticating = false
             }
         }
 
+        const authenticate = async () => {
+            try {
+                const {
+                    data: { session },
+                } = await supabase.auth.getSession()
+
+                if (session?.user) {
+                    setUserId(session.user.id)
+                    setIsAuthenticated(true)
+                    setIsLoading(false)
+                    return
+                }
+
+                await performAnonymousLogin()
+            } catch (err) {
+                setError(
+                    err instanceof Error ? err : new Error('認証に失敗しました')
+                )
+                setIsLoading(false)
+            }
+        }
+
+        const {
+            data: { subscription },
+        } = supabase.auth.onAuthStateChange(async (event, session) => {
+            if (event === 'SIGNED_OUT') {
+                if (!isReauthenticating) {
+                    isReauthenticating = true
+                    await performAnonymousLogin()
+                }
+            } else if (event === 'TOKEN_REFRESHED') {
+                if (session?.user) {
+                    setUserId(session.user.id)
+                    setIsAuthenticated(true)
+                    setError(null)
+                }
+            } else if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
+                if (session?.user) {
+                    setUserId(session.user.id)
+                    setIsAuthenticated(true)
+                    setError(null)
+                }
+            }
+        })
+
         authenticate()
+
+        return () => {
+            subscription.unsubscribe()
+        }
     }, [])
 
     return {

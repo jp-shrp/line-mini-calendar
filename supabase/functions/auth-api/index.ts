@@ -32,8 +32,8 @@ app.post(
     validatedApiHandler(anonymousLoginSchema, async (_c, data) => {
         const supabaseAdmin = createSupabaseAdminClient()
 
-        // getOrCreateAnonymousUserを使用して、ユーザー取得/作成とセッション生成を一括処理
-        const { user, session } = await getOrCreateAnonymousUser(
+        // getOrCreateAnonymousUserを使用して、ユーザー取得/作成と認証情報を返す
+        const { user, email, password } = await getOrCreateAnonymousUser(
             supabaseAdmin,
             data.deviceId
         )
@@ -41,7 +41,8 @@ app.post(
         return new SuccessResponse({
             data: {
                 userId: user.id,
-                session,
+                email,
+                password,
             },
             message: 'Anonymous login successful',
         })
