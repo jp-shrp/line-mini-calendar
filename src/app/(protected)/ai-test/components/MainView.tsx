@@ -1,12 +1,12 @@
 /**
  * AIテストページMain View
  */
-import type { FC } from 'react'
-import type { useAISearch } from '../hooks/useAISearch'
-import type { useAIRegister } from '../hooks/useAIRegister'
-import { AISearchView } from './AISearchView'
-import { AIRegisterView } from './AIRegisterView'
 import Link from 'next/link'
+import type { FC } from 'react'
+import type { useAIRegister } from '../hooks/useAIRegister'
+import type { useAISearch } from '../hooks/useAISearch'
+import { AIRegisterView } from './AIRegisterView'
+import { AISearchView } from './AISearchView'
 
 interface MainViewProps {
     searchHook: ReturnType<typeof useAISearch>
@@ -79,20 +79,6 @@ export const MainView: FC<MainViewProps> = ({ searchHook, registerHook }) => {
                                 <li>
                                     候補を選択して登録ボタンを押すとカレンダーに追加されます
                                 </li>
-                            </ul>
-                        </div>
-                        <div className="rounded-lg bg-orange-100 p-3">
-                            <h4 className="font-semibold text-orange-900">
-                                ⚠️ 現在の制限事項
-                            </h4>
-                            <ul className="mt-1 ml-4 list-disc space-y-1 text-orange-800">
-                                <li>
-                                    AI登録機能は実際のWeb検索を行わず、一般的な情報や例を提示します
-                                </li>
-                                <li>
-                                    実際の試合日程や配信予定は取得できません
-                                </li>
-                                <li>将来的にWeb検索機能を統合する予定です</li>
                             </ul>
                         </div>
                     </div>

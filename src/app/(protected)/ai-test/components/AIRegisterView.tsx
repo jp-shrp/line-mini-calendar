@@ -21,6 +21,23 @@ export const AIRegisterView: FC<AIRegisterViewProps> = ({
     handleConfirmRegister,
     handleClear,
 }) => {
+    /**
+     * 日付を安全にフォーマットする
+     */
+    const formatDate = (dateString: string, formatStr: string): string => {
+        try {
+            const date = new Date(dateString)
+            // 無効な日付をチェック
+            if (isNaN(date.getTime())) {
+                return dateString // 元の文字列をそのまま表示
+            }
+            return format(date, formatStr)
+        } catch (error) {
+            console.error('Date formatting error:', error, dateString)
+            return dateString // エラー時は元の文字列を表示
+        }
+    }
+
     return (
         <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
             <h2 className="mb-4 text-xl font-bold text-gray-900">
@@ -33,34 +50,31 @@ export const AIRegisterView: FC<AIRegisterViewProps> = ({
                     className="mb-2 block text-sm font-medium text-gray-700">
                     自然言語で登録してみましょう
                 </label>
-                <div className="flex gap-2">
+                <div className="mb-2">
                     <input
                         id="register-query"
                         type="text"
                         value={query}
                         onChange={(e) => handleQueryChange(e.target.value)}
-                        onKeyDown={(e) => {
-                            if (e.key === 'Enter' && !isGenerating) {
-                                handleGenerateCandidates()
-                            }
-                        }}
                         placeholder="例: トットナムの試合を登録して、Netflixの新作を追加"
-                        className="flex-1 rounded-lg border border-gray-300 px-4 py-2 focus:border-green-500 focus:ring-2 focus:ring-green-200 focus:outline-none"
+                        className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-green-500 focus:ring-2 focus:ring-green-200 focus:outline-none"
                         disabled={isGenerating || isRegistering}
                     />
+                </div>
+                <div className="flex gap-2">
                     <button
                         onClick={handleGenerateCandidates}
                         disabled={
                             isGenerating || isRegistering || !query.trim()
                         }
-                        className="rounded-lg bg-green-600 px-6 py-2 text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:bg-gray-300">
+                        className="flex-1 rounded-lg bg-green-600 px-6 py-3 text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:bg-gray-300">
                         {isGenerating ? '生成中...' : '候補を生成'}
                     </button>
                     {(registerResult || registeredEvent) && (
                         <button
                             onClick={handleClear}
                             disabled={isRegistering}
-                            className="rounded-lg border border-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:bg-gray-100">
+                            className="rounded-lg border border-gray-300 px-6 py-3 text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:bg-gray-100">
                             クリア
                         </button>
                     )}
@@ -69,9 +83,9 @@ export const AIRegisterView: FC<AIRegisterViewProps> = ({
                     💡 ヒント:
                     「トットナムの試合を登録」「明日のNetflix新作を追加」などと入力してみてください
                 </p>
-                <p className="mt-1 text-xs text-orange-600">
-                    ⚠️ 注意:
-                    現在、AIは実際のイベント情報を検索できません。一般的な情報や例を提示します。
+                <p className="mt-1 text-xs text-green-600">
+                    ✨ Web検索:
+                    AIがGoogle検索を使用してリアルタイムのイベント情報を取得します
                 </p>
             </div>
 
@@ -136,17 +150,13 @@ export const AIRegisterView: FC<AIRegisterViewProps> = ({
                                                 <div className="mt-2 flex flex-wrap gap-2 text-xs text-gray-500">
                                                     <span>
                                                         📅{' '}
-                                                        {format(
-                                                            new Date(
-                                                                candidate.startDatetime
-                                                            ),
+                                                        {formatDate(
+                                                            candidate.startDatetime,
                                                             'yyyy/MM/dd HH:mm'
                                                         )}{' '}
                                                         -{' '}
-                                                        {format(
-                                                            new Date(
-                                                                candidate.endDatetime
-                                                            ),
+                                                        {formatDate(
+                                                            candidate.endDatetime,
                                                             'HH:mm'
                                                         )}
                                                     </span>

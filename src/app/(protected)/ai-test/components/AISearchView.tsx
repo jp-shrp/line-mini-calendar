@@ -27,31 +27,28 @@ export const AISearchView: FC<AISearchViewProps> = ({
                     className="mb-2 block text-sm font-medium text-gray-700">
                     自然言語で検索してみましょう
                 </label>
-                <div className="flex gap-2">
+                <div className="mb-2">
                     <input
                         id="search-query"
                         type="text"
                         value={query}
                         onChange={(e) => handleQueryChange(e.target.value)}
-                        onKeyDown={(e) => {
-                            if (e.key === 'Enter' && !isSearching) {
-                                handleSearch()
-                            }
-                        }}
                         placeholder="例: 今日の試合何がある、今週のイベント教えて"
-                        className="flex-1 rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none"
+                        className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none"
                         disabled={isSearching}
                     />
+                </div>
+                <div className="flex gap-2">
                     <button
                         onClick={handleSearch}
                         disabled={isSearching || !query.trim()}
-                        className="rounded-lg bg-blue-600 px-6 py-2 text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300">
+                        className="flex-1 rounded-lg bg-blue-600 px-6 py-3 text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300">
                         {isSearching ? '検索中...' : '検索'}
                     </button>
                     {searchResult && (
                         <button
                             onClick={handleClear}
-                            className="rounded-lg border border-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-50">
+                            className="rounded-lg border border-gray-300 px-6 py-3 text-gray-700 hover:bg-gray-50">
                             クリア
                         </button>
                     )}

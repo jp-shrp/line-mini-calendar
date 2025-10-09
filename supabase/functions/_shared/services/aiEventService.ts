@@ -3,7 +3,10 @@
  * Gemini APIを使用してイベントの検索・登録をAIで支援
  */
 
-import { generateJSON } from '_shared/services/geminiService'
+import {
+    generateJSON,
+    generateJSONWithWebSearch,
+} from '_shared/services/geminiService'
 import { getEvents } from '_shared/services/eventService'
 import { getPaginationInfo } from '_shared/paginationUtility'
 import type {
@@ -104,13 +107,14 @@ export async function aiSearchEvents(
 
 /**
  * AI登録: 自然言語クエリからイベント登録候補を生成
+ * Web検索を使用してリアルタイムのイベント情報を取得
  */
 export async function aiGenerateEventCandidates(
     query: string
 ): Promise<AIRegisterResponse> {
     const systemInstruction = `
 あなたはカレンダーアプリのAIアシスタントです。
-ユーザーの自然言語クエリを解析し、イベント登録の候補を生成してください。
+ユーザーの自然言語クエリを解析し、Web検索を使用してリアルタイムのイベント情報を取得し、イベント登録の候補を生成してください。
 
 対応するカテゴリ:
 - プレミアリーグ (premier_league) - 色: #E91E63
@@ -122,9 +126,11 @@ export async function aiGenerateEventCandidates(
 - その他 (other) - 色: #9E9E9E
 
 重要な注意事項:
-1. 実際のイベント情報をWeb検索することはできないため、一般的な情報や例を提示してください
-2. 日時が不明な場合は、ユーザーに確認を求めるメッセージを含めてください
-3. 複数の候補がある場合は、最大3件まで提示してください
+1. Google検索を使用して実際のイベント情報を取得してください
+2. スポーツの試合、配信予定など、最新の公式情報を優先してください
+3. 日時が見つからない場合は、ユーザーに確認を求めるメッセージを含めてください
+4. 複数の候補がある場合は、最大3件まで提示してください
+5. 日時はJST(日本時間)で表示してください
 
 以下のJSON形式で応答してください:
 {
@@ -133,11 +139,11 @@ export async function aiGenerateEventCandidates(
       "title": "イベント名",
       "description": "説明（省略可）",
       "category": "カテゴリID",
-      "startDatetime": "YYYY-MM-DDTHH:mm:ss形式",
-      "endDatetime": "YYYY-MM-DDTHH:mm:ss形式",
+      "startDatetime": "YYYY-MM-DDTHH:mm:ss形式（JST）",
+      "endDatetime": "YYYY-MM-DDTHH:mm:ss形式（JST）",
       "color": "カラーコード",
       "confidence": 0-1の確信度,
-      "source": "情報源（例: 一般的な知識、推測など）"
+      "source": "情報源（URL等）"
     }
   ],
   "aiMessage": "ユーザーへの確認メッセージ",
@@ -149,7 +155,7 @@ export async function aiGenerateEventCandidates(
 
     const prompt = `ユーザークエリ: "${query}"\n\n今日の日付: ${new Date().toISOString().split('T')[0]}`
 
-    const aiResponse = await generateJSON<{
+    const aiResponse = await generateJSONWithWebSearch<{
         candidates: AIEventCandidate[]
         aiMessage: string
         requiresConfirmation: boolean
