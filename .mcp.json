@@ -21,6 +21,17 @@
                 "./playwright-mcp-config.json"
             ],
             "env": {}
+        },
+        "context7": {
+            "type": "stdio",
+            "command": "npx",
+            "args": [
+                "-y",
+                "@upstash/context7-mcp",
+                "--api-key",
+                "ctx7sk-06a145c6-b6dd-4c20-b91d-c82293fafcb8"
+            ],
+            "env": {}
         }
     }
 }

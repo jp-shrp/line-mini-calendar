@@ -84,7 +84,9 @@
             "mcp__playwright__browser_select_option",
             "Bash(yarn build)",
             "Bash(PGPASSWORD=postgres psql -h localhost -p 18766 -U postgres -d postgres -c \"SELECT id, title, start_datetime, end_datetime, user_id FROM events WHERE user_id = ''2e6bfa16-6aee-41e6-adb1-f7878887a942'' AND is_deleted = false ORDER BY start_datetime;\")",
-            "mcp__playwright__browser_evaluate"
+            "mcp__playwright__browser_evaluate",
+            "Bash(xargs sed:*)",
+            "WebFetch(domain:ai.google.dev)"
         ],
         "deny": [],
         "ask": []
