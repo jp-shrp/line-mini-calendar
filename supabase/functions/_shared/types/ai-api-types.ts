@@ -45,8 +45,11 @@ export interface AIEventCandidate {
     endDatetime: string
     iconUrl?: string
     color?: string
-    confidence: number // AIの確信度（0-1）
+    confidence: number // AIの確信度(0-1)
     source?: string // 情報源
+    isDuplicate?: boolean // 重複イベントかどうか
+    duplicateReason?: string // 重複理由
+    duplicateConfidence?: number // 重複の確信度(0-1)
 }
 
 /**

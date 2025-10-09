@@ -134,29 +134,36 @@ export const AIRegisterView: FC<AIRegisterViewProps> = ({
                                             selectedCandidateIndexes.includes(
                                                 index
                                             )
+                                        const isDuplicate =
+                                            candidate.isDuplicate || false
                                         return (
                                             <div
                                                 key={index}
-                                                onClick={() =>
-                                                    handleToggleCandidateSelection(
-                                                        index
-                                                    )
-                                                }
-                                                className={`cursor-pointer rounded-lg border p-4 transition-all ${
-                                                    isSelected
-                                                        ? 'border-green-500 bg-green-50 shadow-md'
-                                                        : 'border-gray-200 bg-white hover:border-green-300 hover:shadow-sm'
+                                                onClick={() => {
+                                                    if (!isDuplicate) {
+                                                        handleToggleCandidateSelection(
+                                                            index
+                                                        )
+                                                    }
+                                                }}
+                                                className={`rounded-lg border p-4 transition-all ${
+                                                    isDuplicate
+                                                        ? 'cursor-not-allowed border-gray-300 bg-gray-100 opacity-60'
+                                                        : isSelected
+                                                          ? 'cursor-pointer border-green-500 bg-green-50 shadow-md'
+                                                          : 'cursor-pointer border-gray-200 bg-white hover:border-green-300 hover:shadow-sm'
                                                 }`}>
                                                 <div className="flex items-start gap-3">
                                                     <input
                                                         type="checkbox"
                                                         checked={isSelected}
+                                                        disabled={isDuplicate}
                                                         onChange={() =>
                                                             handleToggleCandidateSelection(
                                                                 index
                                                             )
                                                         }
-                                                        className="mt-1 h-5 w-5 rounded border-gray-300 text-green-600 focus:ring-green-500"
+                                                        className="mt-1 h-5 w-5 rounded border-gray-300 text-green-600 focus:ring-green-500 disabled:cursor-not-allowed disabled:opacity-50"
                                                         onClick={(e) =>
                                                             e.stopPropagation()
                                                         }
@@ -176,10 +183,16 @@ export const AIRegisterView: FC<AIRegisterViewProps> = ({
                                                                     candidate.title
                                                                 }
                                                             </h4>
-                                                            {isSelected && (
-                                                                <span className="rounded-full bg-green-600 px-2 py-1 text-xs text-white">
-                                                                    選択中
+                                                            {isDuplicate ? (
+                                                                <span className="rounded-full bg-gray-500 px-2 py-1 text-xs text-white">
+                                                                    登録済み
                                                                 </span>
+                                                            ) : (
+                                                                isSelected && (
+                                                                    <span className="rounded-full bg-green-600 px-2 py-1 text-xs text-white">
+                                                                        選択中
+                                                                    </span>
+                                                                )
                                                             )}
                                                         </div>
                                                         {candidate.description && (
@@ -227,6 +240,29 @@ export const AIRegisterView: FC<AIRegisterViewProps> = ({
                                                                 }
                                                             </p>
                                                         )}
+                                                        {isDuplicate &&
+                                                            candidate.duplicateReason && (
+                                                                <p className="mt-2 text-xs text-gray-600 italic">
+                                                                    ⚠️{' '}
+                                                                    {
+                                                                        candidate.duplicateReason
+                                                                    }
+                                                                    {candidate.duplicateConfidence !==
+                                                                        undefined &&
+                                                                        candidate.duplicateConfidence >
+                                                                            0 && (
+                                                                            <span className="ml-2 rounded-full bg-orange-100 px-2 py-1 text-orange-700">
+                                                                                確信度:{' '}
+                                                                                {Math.round(
+                                                                                    candidate.duplicateConfidence *
+                                                                                        100
+                                                                                )}
+
+                                                                                %
+                                                                            </span>
+                                                                        )}
+                                                                </p>
+                                                            )}
                                                     </div>
                                                 </div>
                                             </div>

@@ -99,6 +99,9 @@ app.post(
     '/register',
     authMiddleware,
     apiHandler(async (c) => {
+        const user = c.get('user') as SelectUser
+        const userId = user.id
+
         const body = await c.req.json()
         const { query } = body as AIRegisterRequest
 
@@ -112,8 +115,8 @@ app.post(
             )
         }
 
-        // AI登録候補生成
-        const result = await aiGenerateEventCandidates(query)
+        // AI登録候補生成（重複チェック付き）
+        const result = await aiGenerateEventCandidates(userId, query)
 
         const response: AIRegisterResponse = result
 

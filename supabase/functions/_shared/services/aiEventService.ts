@@ -28,6 +28,107 @@ interface SearchParams {
 /**
  * AI検索: 自然言語クエリからイベントを検索
  */
+/**
+ * 重複チェック結果
+ */
+interface DuplicateCheckResult {
+    candidateIndex: number
+    isDuplicate: boolean
+    confidence: number // 重複の確信度 (0-1)
+    reason?: string // 重複と判断した理由
+}
+
+/**
+ * AI重複チェック: 候補イベントと既存イベントの重複を一括でチェック
+ * 候補を一つずつチェックするのではなく、一括でAIに送信して効率化
+ */
+async function aiCheckDuplicateEvents(
+    userId: string,
+    candidates: AIEventCandidate[]
+): Promise<DuplicateCheckResult[]> {
+    // 既存イベントを取得
+    const { events: existingEvents } = await getEvents({
+        userId,
+        pagination: getPaginationInfo({ currentPage: 1, limit: 100 }),
+    })
+
+    // 既存イベントがない場合は重複なし
+    if (existingEvents.length === 0) {
+        return candidates.map((_, index) => ({
+            candidateIndex: index,
+            isDuplicate: false,
+            confidence: 0,
+        }))
+    }
+
+    // 候補と既存イベントの簡略化データを準備
+    const candidatesSimplified = candidates.map((c, index) => ({
+        index,
+        title: c.title,
+        startDatetime: c.startDatetime,
+    }))
+
+    const existingEventsSimplified = existingEvents.map((e) => ({
+        title: e.title,
+        startDatetime: e.startDatetime,
+    }))
+
+    // 日本語版（参考）:
+    // あなたはカレンダーアプリのAIアシスタントです。
+    // 新規登録候補のイベントリストと既存イベントリストを比較し、重複しているイベントを検出してください。
+    const systemInstruction = `
+You are an AI assistant for a calendar app.
+Compare the list of new event candidates with the list of existing events and detect duplicates.
+All response messages must be in Japanese.
+
+Important notes:
+1. Consider events as duplicates if they have similar titles and occur on the same date (ignore time differences)
+2. Handle title variations (e.g., "トッテナム vs アストン・ヴィラ" and "トットナム対アストン・ヴィラ" are the same)
+3. Return confidence score (0-1) for each duplicate detection
+4. Provide reason in Japanese when marking as duplicate
+
+Respond in the following JSON format:
+{
+  "results": [
+    {
+      "candidateIndex": index of the candidate,
+      "isDuplicate": true or false,
+      "confidence": confidence score 0-1 (1 = definitely duplicate, 0 = definitely not duplicate),
+      "reason": "Reason in Japanese (only if isDuplicate is true)"
+    }
+  ]
+}
+
+Check ALL candidates and return results for each one.
+`
+
+    const prompt = `
+Candidate events to register:
+${JSON.stringify(candidatesSimplified, null, 2)}
+
+Existing events already registered:
+${JSON.stringify(existingEventsSimplified, null, 2)}
+
+Please check if any candidates are duplicates of existing events.
+`
+
+    try {
+        const aiResponse = await generateJSON<{
+            results: DuplicateCheckResult[]
+        }>(prompt, systemInstruction)
+
+        return aiResponse.results
+    } catch (error) {
+        console.error('Error in AI duplicate check:', error)
+        // エラー時は全て重複なしとして返す
+        return candidates.map((_, index) => ({
+            candidateIndex: index,
+            isDuplicate: false,
+            confidence: 0,
+        }))
+    }
+}
+
 export async function aiSearchEvents(
     userId: string,
     query: string
@@ -114,6 +215,7 @@ Respond in the following JSON format:
  * Web検索を使用してリアルタイムのイベント情報を取得
  */
 export async function aiGenerateEventCandidates(
+    userId: string,
     query: string
 ): Promise<AIRegisterResponse> {
     // 日本語版（参考）:
@@ -199,5 +301,35 @@ Note: If information is not certain, set requiresConfirmation to true and ask th
         requiresConfirmation: boolean
     }>(prompt, systemInstruction)
 
-    return aiResponse
+    // Step: AI重複チェックを一括で実行
+    const duplicateCheckResults = await aiCheckDuplicateEvents(
+        userId,
+        aiResponse.candidates
+    )
+
+    // 重複チェック結果を候補に反映
+    const candidatesWithDuplicateCheck = aiResponse.candidates.map(
+        (candidate, index) => {
+            const checkResult = duplicateCheckResults.find(
+                (r) => r.candidateIndex === index
+            )
+
+            if (checkResult && checkResult.isDuplicate) {
+                return {
+                    ...candidate,
+                    isDuplicate: true,
+                    duplicateReason:
+                        checkResult.reason || '既に登録されています',
+                    duplicateConfidence: checkResult.confidence,
+                }
+            }
+
+            return candidate
+        }
+    )
+
+    return {
+        ...aiResponse,
+        candidates: candidatesWithDuplicateCheck,
+    }
 }
