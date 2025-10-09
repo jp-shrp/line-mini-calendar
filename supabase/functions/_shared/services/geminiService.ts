@@ -4,8 +4,8 @@
  */
 
 const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY')
-const GEMINI_API_URL =
-    'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent'
+const GEMINI_MODEL = 'gemini-2.0-flash-exp' // 最新の安定版モデルを使用
+const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`
 
 if (!GEMINI_API_KEY) {
     console.warn(
