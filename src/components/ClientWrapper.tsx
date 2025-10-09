@@ -20,42 +20,14 @@ function ErrorHandlerSetup({ children }: { children: ReactNode }) {
 
     useEffect(() => {
         setGlobalErrorHandler(async (error: any) => {
-            // 401エラーの場合は自動的にサインアウトして再ログイン
+            // 401エラーの場合はサインアウトして自動再ログインに任せる
             if (error?.status === 401) {
                 const { getSupabaseClient } = await import('@/db/supabase')
-                const { generateDeterministicUUID } = await import(
-                    '@/src/lib/deterministic-uuid'
-                )
                 const supabase = getSupabaseClient()
 
-                // サインアウト
+                // サインアウト（onAuthStateChangeで自動再ログインが発火する）
                 await supabase.auth.signOut()
-
-                // 決定論的UUIDを生成
-                const deviceId = await generateDeterministicUUID()
-
-                // auth-apiの/anonymous-loginエンドポイントを使用
-                const response = await supabase.functions.invoke(
-                    'auth-api/anonymous-login',
-                    {
-                        method: 'POST',
-                        body: { deviceId },
-                    }
-                )
-
-                if (!response.error && response.data?.data?.session) {
-                    const { session: newSession } = response.data.data
-
-                    // セッションを設定
-                    await supabase.auth.setSession({
-                        access_token: newSession.access_token,
-                        refresh_token: newSession.refresh_token,
-                    })
-
-                    // 再ログイン成功したらページをリロード
-                    window.location.reload()
-                    return
-                }
+                return
             }
 
             // 401以外のエラーはモーダル表示

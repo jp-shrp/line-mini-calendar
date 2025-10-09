@@ -1,10 +1,10 @@
 /**
  * AIイベント登録View
  */
-import type { FC } from 'react'
-import type { useAIRegister } from '../hooks/useAIRegister'
 import { format } from 'date-fns'
 import Link from 'next/link'
+import type { FC } from 'react'
+import type { useAIRegister } from '../hooks/useAIRegister'
 
 type AIRegisterViewProps = ReturnType<typeof useAIRegister>
 
@@ -64,7 +64,7 @@ export const AIRegisterView: FC<AIRegisterViewProps> = ({
                         type="text"
                         value={query}
                         onChange={(e) => handleQueryChange(e.target.value)}
-                        placeholder="例: トットナムの試合を登録して、Netflixの新作を追加"
+                        placeholder="例: トッテナムの試合を登録して、Netflixの新作を追加"
                         className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-green-500 focus:ring-2 focus:ring-green-200 focus:outline-none"
                         disabled={isGenerating || isRegistering}
                     />
@@ -89,7 +89,7 @@ export const AIRegisterView: FC<AIRegisterViewProps> = ({
                 </div>
                 <p className="mt-2 text-xs text-gray-500">
                     💡 ヒント:
-                    「トットナムの試合を登録」「明日のNetflix新作を追加」などと入力してみてください
+                    「トッテナムの試合を登録」「明日のNetflix新作を追加」などと入力してみてください
                 </p>
                 <p className="mt-1 text-xs text-green-600">
                     ✨ Web検索:

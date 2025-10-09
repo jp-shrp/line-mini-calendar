@@ -83,7 +83,7 @@ All response messages must be in Japanese.
 
 Important notes:
 1. Consider events as duplicates if they have similar titles and occur on the same date (ignore time differences)
-2. Handle title variations (e.g., "トッテナム vs アストン・ヴィラ" and "トットナム対アストン・ヴィラ" are the same)
+2. Handle title variations (e.g., "トッテナム vs アストン・ヴィラ" and "トッテナム対アストン・ヴィラ" are the same)
 3. Return confidence score (0-1) for each duplicate detection
 4. Provide reason in Japanese when marking as duplicate
 

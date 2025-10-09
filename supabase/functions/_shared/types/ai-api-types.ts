@@ -31,7 +31,7 @@ export interface AISearchResponse {
  * AI登録リクエスト
  */
 export interface AIRegisterRequest {
-    query: string // 自然言語のクエリ（例: "トットナムの試合の日程を登録して"）
+    query: string // 自然言語のクエリ（例: "トッテナムの試合の日程を登録して"）
 }
 
 /**
