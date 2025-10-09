@@ -47,27 +47,24 @@ export function useAnonymousAuth(): UseAnonymousAuthReturn {
                     )
                 }
 
-                const { session: newSession } = response.data.data
+                const { email, password } = response.data.data
 
-                if (!newSession) {
-                    throw new Error('セッション情報が取得できませんでした')
+                if (!email || !password) {
+                    throw new Error('認証情報が取得できませんでした')
                 }
 
-                const { error: sessionError } = await supabase.auth.setSession({
-                    access_token: newSession.access_token,
-                    refresh_token: newSession.refresh_token,
-                })
+                const { data: signInData, error: signInError } =
+                    await supabase.auth.signInWithPassword({
+                        email,
+                        password,
+                    })
 
-                if (sessionError) {
-                    throw sessionError
+                if (signInError) {
+                    throw signInError
                 }
 
-                const {
-                    data: { user },
-                } = await supabase.auth.getUser()
-
-                if (user) {
-                    setUserId(user.id)
+                if (signInData.user) {
+                    setUserId(signInData.user.id)
                     setIsAuthenticated(true)
                     setError(null)
                 }
