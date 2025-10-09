@@ -67,3 +67,32 @@ export function useAuth(): AuthContextType {
 
     return context
 }
+
+/**
+ * 認証ガード
+ * 認証が完了していない場合はエラー画面を表示
+ */
+interface AuthGuardProps {
+    children: ReactNode
+}
+
+export function AuthGuard({ children }: AuthGuardProps) {
+    const { isAuthenticated } = useAuth()
+
+    if (!isAuthenticated) {
+        return (
+            <div className="flex h-screen items-center justify-center">
+                <div className="text-center">
+                    <p className="mb-4 text-red-600">認証が必要です</p>
+                    <button
+                        onClick={() => window.location.reload()}
+                        className="mt-4 rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700">
+                        再読み込み
+                    </button>
+                </div>
+            </div>
+        )
+    }
+
+    return <>{children}</>
+}
