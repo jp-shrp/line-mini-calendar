@@ -18,6 +18,9 @@ export const useAIRegister = () => {
     >([])
     const [registeredEvent, setRegisteredEvent] = useState<Event | null>(null)
     const [registeredEvents, setRegisteredEvents] = useState<Event[]>([])
+    const [batchRegisterAiMessage, setBatchRegisterAiMessage] = useState<
+        string | null
+    >(null)
 
     const registerMutation = useAIRegisterMutation()
     const batchRegisterMutation = useAIBatchRegisterMutation()
@@ -37,6 +40,7 @@ export const useAIRegister = () => {
             setSelectedCandidateIndexes([])
             setRegisteredEvent(null)
             setRegisteredEvents([])
+            setBatchRegisterAiMessage(null)
         }
     }, [query, registerMutation])
 
@@ -63,8 +67,9 @@ export const useAIRegister = () => {
             candidates: registerResult.candidates,
         })
 
-        if (result && result.events) {
-            setRegisteredEvents(result.events)
+        if (result) {
+            setRegisteredEvents(result.events || [])
+            setBatchRegisterAiMessage(result.aiMessage || null)
         }
     }, [selectedCandidateIndexes, registerResult, batchRegisterMutation])
 
@@ -74,6 +79,7 @@ export const useAIRegister = () => {
         setSelectedCandidateIndexes([])
         setRegisteredEvent(null)
         setRegisteredEvents([])
+        setBatchRegisterAiMessage(null)
     }, [])
 
     return {
@@ -82,6 +88,7 @@ export const useAIRegister = () => {
         selectedCandidateIndexes,
         registeredEvent,
         registeredEvents,
+        batchRegisterAiMessage,
         isGenerating: registerMutation.isPending,
         isRegistering: batchRegisterMutation.isPending,
         handleQueryChange,

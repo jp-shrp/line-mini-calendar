@@ -14,6 +14,7 @@ export const AIRegisterView: FC<AIRegisterViewProps> = ({
     selectedCandidateIndexes,
     registeredEvent,
     registeredEvents,
+    batchRegisterAiMessage,
     isGenerating,
     isRegistering,
     handleQueryChange,
@@ -282,12 +283,48 @@ export const AIRegisterView: FC<AIRegisterViewProps> = ({
 
             {registeredEvents.length > 0 && (
                 <div className="mt-6">
-                    <div className="rounded-lg bg-green-100 p-6">
-                        <div className="mb-4 text-center text-4xl">✅</div>
-                        <h3 className="mb-2 text-center text-lg font-bold text-green-900">
+                    <div
+                        className={`rounded-lg p-6 ${
+                            batchRegisterAiMessage &&
+                            batchRegisterAiMessage.includes('失敗')
+                                ? 'bg-yellow-50'
+                                : 'bg-green-100'
+                        }`}>
+                        <div className="mb-4 text-center text-4xl">
+                            {batchRegisterAiMessage &&
+                            batchRegisterAiMessage.includes('失敗')
+                                ? '⚠️'
+                                : '✅'}
+                        </div>
+                        <h3
+                            className={`mb-2 text-center text-lg font-bold ${
+                                batchRegisterAiMessage &&
+                                batchRegisterAiMessage.includes('失敗')
+                                    ? 'text-yellow-900'
+                                    : 'text-green-900'
+                            }`}>
                             {registeredEvents.length}
-                            件のイベントを一括登録しました！
+                            件のイベントを一括登録しました
                         </h3>
+
+                        {batchRegisterAiMessage && (
+                            <div
+                                className={`mb-4 rounded-lg p-4 ${
+                                    batchRegisterAiMessage.includes('失敗')
+                                        ? 'bg-yellow-100'
+                                        : 'bg-green-50'
+                                }`}>
+                                <p
+                                    className={`text-sm font-medium whitespace-pre-line ${
+                                        batchRegisterAiMessage.includes('失敗')
+                                            ? 'text-yellow-900'
+                                            : 'text-green-900'
+                                    }`}>
+                                    🤖 AI: {batchRegisterAiMessage}
+                                </p>
+                            </div>
+                        )}
+
                         <div className="mb-4 space-y-2">
                             {registeredEvents.map((event, index) => (
                                 <div

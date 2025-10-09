@@ -132,6 +132,14 @@ export async function aiGenerateEventCandidates(
 4. 複数の候補がある場合は、最大3件まで提示してください
 5. 日時はJST(日本時間)で表示してください
 
+**日時フォーマットの厳格なルール:**
+- 時刻は必ず24時間形式で、00:00～23:59の範囲内で指定してください
+- 24時、25時、28時などの表記は絶対に使用しないでください
+- 深夜0時をまたぐ場合は、日付を翌日に変更して00:00～23:59の範囲で表現してください
+- 例: 2025-10-22T28:00:00は誤り → 正しくは2025-10-23T04:00:00
+- 例: 2025-10-26T25:30:00は誤り → 正しくは2025-10-27T01:30:00
+- フォーマット: YYYY-MM-DDTHH:mm:ss+09:00（HHは00～23の範囲）
+
 以下のJSON形式で応答してください:
 {
   "candidates": [
@@ -139,8 +147,8 @@ export async function aiGenerateEventCandidates(
       "title": "イベント名",
       "description": "説明（省略可）",
       "category": "カテゴリID",
-      "startDatetime": "YYYY-MM-DDTHH:mm:ss形式（JST）",
-      "endDatetime": "YYYY-MM-DDTHH:mm:ss形式（JST）",
+      "startDatetime": "YYYY-MM-DDTHH:mm:ss+09:00形式（HH:00～23まで）",
+      "endDatetime": "YYYY-MM-DDTHH:mm:ss+09:00形式（HH:00～23まで）",
       "color": "カラーコード",
       "confidence": 0-1の確信度,
       "source": "情報源（URL等）"

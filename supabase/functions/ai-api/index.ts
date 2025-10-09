@@ -242,6 +242,8 @@ app.post(
         }
 
         const events = []
+        const errors: Array<{ index: number; title: string; error: string }> =
+            []
         let successCount = 0
         let failureCount = 0
 
@@ -266,19 +268,43 @@ app.post(
                 events.push(newEvent)
                 successCount++
             } catch (error) {
+                const selectedCandidate = candidates[index]
+                const errorMessage =
+                    error instanceof Error ? error.message : String(error)
                 console.error(
                     `Failed to create event at index ${index}:`,
-                    error
+                    errorMessage
                 )
+                errors.push({
+                    index,
+                    title: selectedCandidate.title,
+                    error: errorMessage,
+                })
                 failureCount++
             }
+        }
+
+        let aiMessage = ''
+        if (successCount > 0 && failureCount === 0) {
+            aiMessage = `${successCount}件のイベントをカレンダーに登録しました！`
+        } else if (successCount > 0 && failureCount > 0) {
+            aiMessage = `${successCount}件のイベントをカレンダーに登録しました（${failureCount}件失敗）`
+        } else {
+            aiMessage = `イベントの登録に失敗しました（${failureCount}件失敗）`
+        }
+
+        if (errors.length > 0) {
+            const errorDetails = errors
+                .map((e) => `・${e.title}: ${e.error}`)
+                .join('\n')
+            aiMessage += `\n\n失敗した理由:\n${errorDetails}`
         }
 
         const response: AIBatchRegisterResponse = {
             events,
             successCount,
             failureCount,
-            aiMessage: `${successCount}件のイベントをカレンダーに登録しました！${failureCount > 0 ? `（${failureCount}件失敗）` : ''}`,
+            aiMessage,
         }
 
         return c.json(
