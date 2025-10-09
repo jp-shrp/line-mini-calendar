@@ -9,6 +9,8 @@ import type {
     AIRegisterResponse,
     AIConfirmRegisterRequest,
     AIConfirmRegisterResponse,
+    AIBatchRegisterRequest,
+    AIBatchRegisterResponse,
 } from '@/supabase/functions/_shared/types/ai-api-types'
 
 /**
@@ -45,4 +47,17 @@ export const useAIConfirmRegisterMutation = () => {
         method: 'POST',
         suppressErrorModal: false,
     })
+}
+
+/**
+ * AIイベント一括登録Mutation
+ */
+export const useAIBatchRegisterMutation = () => {
+    return useSupabaseMutation<AIBatchRegisterResponse, AIBatchRegisterRequest>(
+        {
+            functionName: 'ai-api/batch-register',
+            method: 'POST',
+            suppressErrorModal: false,
+        }
+    )
 }

@@ -11,6 +11,8 @@ import {
 } from '_shared/services/aiEventService'
 import { createEvent } from '_shared/services/eventService'
 import type {
+    AIBatchRegisterRequest,
+    AIBatchRegisterResponse,
     AIConfirmRegisterRequest,
     AIConfirmRegisterResponse,
     AIRegisterRequest,
@@ -183,6 +185,106 @@ app.post(
             new SuccessResponse({
                 data: response,
                 message: 'イベントを登録しました',
+            })
+        )
+    })
+)
+
+/**
+ * AIイベント一括登録API
+ * POST /ai-api/batch-register
+ *
+ * リクエストボディ:
+ * {
+ *   "candidateIndexes": [0, 1, 2],
+ *   "candidates": [...]
+ * }
+ */
+app.post(
+    '/batch-register',
+    authMiddleware,
+    apiHandler(async (c) => {
+        const user = c.get('user') as SelectUser
+        const userId = user.id
+
+        const body = await c.req.json()
+        const { candidateIndexes, candidates } = body as AIBatchRegisterRequest
+
+        if (
+            !Array.isArray(candidateIndexes) ||
+            !Array.isArray(candidates) ||
+            candidateIndexes.length === 0
+        ) {
+            return c.json(
+                {
+                    success: false,
+                    message: '有効な候補を選択してください',
+                },
+                400
+            )
+        }
+
+        // 選択されたインデックスが範囲内かチェック
+        for (const index of candidateIndexes) {
+            if (
+                typeof index !== 'number' ||
+                index < 0 ||
+                index >= candidates.length
+            ) {
+                return c.json(
+                    {
+                        success: false,
+                        message: '無効な候補インデックスが含まれています',
+                    },
+                    400
+                )
+            }
+        }
+
+        const events = []
+        let successCount = 0
+        let failureCount = 0
+
+        // 選択された候補を一つずつイベント作成
+        for (const index of candidateIndexes) {
+            try {
+                const selectedCandidate = candidates[index]
+
+                const eventData: CreateEventInput = {
+                    title: selectedCandidate.title,
+                    description: selectedCandidate.description,
+                    category: selectedCandidate.category,
+                    iconUrl: selectedCandidate.iconUrl,
+                    startDatetime: parseJSTtoUTC(
+                        selectedCandidate.startDatetime
+                    ),
+                    endDatetime: parseJSTtoUTC(selectedCandidate.endDatetime),
+                    color: selectedCandidate.color,
+                }
+
+                const newEvent = await createEvent(userId, eventData)
+                events.push(newEvent)
+                successCount++
+            } catch (error) {
+                console.error(
+                    `Failed to create event at index ${index}:`,
+                    error
+                )
+                failureCount++
+            }
+        }
+
+        const response: AIBatchRegisterResponse = {
+            events,
+            successCount,
+            failureCount,
+            aiMessage: `${successCount}件のイベントをカレンダーに登録しました！${failureCount > 0 ? `（${failureCount}件失敗）` : ''}`,
+        }
+
+        return c.json(
+            new SuccessResponse({
+                data: response,
+                message: `${successCount}件のイベントを登録しました`,
             })
         )
     })

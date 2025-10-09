@@ -4,7 +4,7 @@
 import { useState, useCallback } from 'react'
 import {
     useAIRegisterMutation,
-    useAIConfirmRegisterMutation,
+    useAIBatchRegisterMutation,
 } from '../api/ai-mutation'
 import type { AIRegisterResponse } from '@/supabase/functions/_shared/types/ai-api-types'
 import type { Event } from '@/supabase/functions/_shared/types/events-api-types'
@@ -13,13 +13,14 @@ export const useAIRegister = () => {
     const [query, setQuery] = useState('')
     const [registerResult, setRegisterResult] =
         useState<AIRegisterResponse | null>(null)
-    const [selectedCandidateIndex, setSelectedCandidateIndex] = useState<
-        number | null
-    >(null)
+    const [selectedCandidateIndexes, setSelectedCandidateIndexes] = useState<
+        number[]
+    >([])
     const [registeredEvent, setRegisteredEvent] = useState<Event | null>(null)
+    const [registeredEvents, setRegisteredEvents] = useState<Event[]>([])
 
     const registerMutation = useAIRegisterMutation()
-    const confirmMutation = useAIConfirmRegisterMutation()
+    const batchRegisterMutation = useAIBatchRegisterMutation()
 
     const handleQueryChange = useCallback((value: string) => {
         setQuery(value)
@@ -33,52 +34,60 @@ export const useAIRegister = () => {
         const result = await registerMutation.mutateAsync({ query })
         if (result) {
             setRegisterResult(result)
-            setSelectedCandidateIndex(null)
+            setSelectedCandidateIndexes([])
             setRegisteredEvent(null)
+            setRegisteredEvents([])
         }
     }, [query, registerMutation])
 
-    const handleSelectCandidate = useCallback((index: number) => {
-        setSelectedCandidateIndex(index)
+    const handleToggleCandidateSelection = useCallback((index: number) => {
+        setSelectedCandidateIndexes((prev) => {
+            if (prev.includes(index)) {
+                return prev.filter((i) => i !== index)
+            }
+            return [...prev, index]
+        })
     }, [])
 
-    const handleConfirmRegister = useCallback(async () => {
+    const handleBatchRegister = useCallback(async () => {
         if (
-            selectedCandidateIndex === null ||
+            selectedCandidateIndexes.length === 0 ||
             !registerResult ||
             !registerResult.candidates
         ) {
             return
         }
 
-        const result = await confirmMutation.mutateAsync({
-            candidateIndex: selectedCandidateIndex,
+        const result = await batchRegisterMutation.mutateAsync({
+            candidateIndexes: selectedCandidateIndexes,
             candidates: registerResult.candidates,
         })
 
-        if (result && result.event) {
-            setRegisteredEvent(result.event)
+        if (result && result.events) {
+            setRegisteredEvents(result.events)
         }
-    }, [selectedCandidateIndex, registerResult, confirmMutation])
+    }, [selectedCandidateIndexes, registerResult, batchRegisterMutation])
 
     const handleClear = useCallback(() => {
         setQuery('')
         setRegisterResult(null)
-        setSelectedCandidateIndex(null)
+        setSelectedCandidateIndexes([])
         setRegisteredEvent(null)
+        setRegisteredEvents([])
     }, [])
 
     return {
         query,
         registerResult,
-        selectedCandidateIndex,
+        selectedCandidateIndexes,
         registeredEvent,
+        registeredEvents,
         isGenerating: registerMutation.isPending,
-        isRegistering: confirmMutation.isPending,
+        isRegistering: batchRegisterMutation.isPending,
         handleQueryChange,
         handleGenerateCandidates,
-        handleSelectCandidate,
-        handleConfirmRegister,
+        handleToggleCandidateSelection,
+        handleBatchRegister,
         handleClear,
     }
 }

@@ -73,3 +73,21 @@ export interface AIConfirmRegisterResponse {
     event: Event
     aiMessage: string
 }
+
+/**
+ * AI一括登録リクエスト
+ */
+export interface AIBatchRegisterRequest {
+    candidateIndexes: number[] // 選択された複数候補のインデックス配列
+    candidates: AIEventCandidate[] // 候補リスト
+}
+
+/**
+ * AI一括登録レスポンス
+ */
+export interface AIBatchRegisterResponse {
+    events: Event[] // 登録されたイベントの配列
+    successCount: number // 成功した件数
+    failureCount: number // 失敗した件数
+    aiMessage: string
+}

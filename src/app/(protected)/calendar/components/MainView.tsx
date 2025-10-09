@@ -2,6 +2,7 @@ import CalendarHeader from '@/src/app/(protected)/calendar/components/CalendarHe
 import CalendarView from '@/src/app/(protected)/calendar/components/CalendarView'
 import NewEventButton from '@/src/app/(protected)/calendar/components/NewEventButton'
 import TodayEventList from '@/src/app/(protected)/calendar/components/TodayEventList'
+import SelectedDateEventList from '@/src/app/(protected)/calendar/components/SelectedDateEventList'
 import UpcomingEventList from '@/src/app/(protected)/calendar/components/UpcomingEventList'
 import type { useCalendar } from '@/src/app/(protected)/calendar/hooks/useCalendar'
 import type { FC } from 'react'
@@ -12,6 +13,7 @@ const MainView: FC<ReturnType<typeof useCalendar>> = ({
     viewMode,
     todayEvents,
     upcomingEvents,
+    selectedDateEvents,
     handleDateChange,
     handleMonthChange,
     handleViewModeChange,
@@ -31,6 +33,10 @@ const MainView: FC<ReturnType<typeof useCalendar>> = ({
                 onMonthChange={handleMonthChange}
             />
             <TodayEventList events={todayEvents} />
+            <SelectedDateEventList
+                events={selectedDateEvents}
+                selectedDate={selectedDate}
+            />
             <UpcomingEventList events={upcomingEvents} />
             <NewEventButton />
         </div>
