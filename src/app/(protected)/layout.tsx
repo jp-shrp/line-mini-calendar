@@ -4,7 +4,7 @@
  */
 'use client'
 
-import { AuthGuard } from '@/src/contexts/AuthContext'
+import { AuthProvider, AuthGuard } from '@/src/contexts/AuthContext'
 import { ReactNode } from 'react'
 
 interface ProtectedLayoutProps {
@@ -12,5 +12,9 @@ interface ProtectedLayoutProps {
 }
 
 export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
-    return <AuthGuard>{children}</AuthGuard>
+    return (
+        <AuthProvider>
+            <AuthGuard>{children}</AuthGuard>
+        </AuthProvider>
+    )
 }
