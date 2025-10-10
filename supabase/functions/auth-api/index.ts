@@ -2,7 +2,7 @@ import { createSupabaseAdminClient } from '_shared/clientAdmin'
 import {
     initApi,
     validatedApiHandler,
-    authenticatedApiHandler,
+    authMiddleware,
 } from '_shared/middlewares/middleware'
 import {
     getOrCreateAnonymousUser,
@@ -111,7 +111,8 @@ const linkLineSchema = z.object({
  */
 app.post(
     '/link-line',
-    authenticatedApiHandler(linkLineSchema, async (c, data) => {
+    authMiddleware,
+    validatedApiHandler(linkLineSchema, async (c, data) => {
         const supabaseAdmin = createSupabaseAdminClient()
         const user = c.get('user')
 

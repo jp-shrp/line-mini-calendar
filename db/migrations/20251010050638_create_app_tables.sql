@@ -1,3 +1,4 @@
+CREATE TYPE "public"."auth_method" AS ENUM('anonymous', 'line', 'line_anonymous');--> statement-breakpoint
 CREATE TABLE "categories" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"user_id" uuid,
@@ -23,6 +24,21 @@ CREATE TABLE "events" (
 	"updated_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
+CREATE TABLE "users" (
+	"id" uuid PRIMARY KEY NOT NULL,
+	"line_user_id" varchar(255),
+	"display_name" varchar(100),
+	"profile_image" text,
+	"email" varchar(255),
+	"auth0_id" text,
+	"auth_method" "auth_method" DEFAULT 'anonymous',
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"updated_at" timestamp DEFAULT now() NOT NULL,
+	CONSTRAINT "users_line_user_id_unique" UNIQUE("line_user_id"),
+	CONSTRAINT "users_email_unique" UNIQUE("email"),
+	CONSTRAINT "users_auth0_id_unique" UNIQUE("auth0_id")
+);
+--> statement-breakpoint
 CREATE TABLE "reminders" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"event_id" uuid NOT NULL,
@@ -31,10 +47,6 @@ CREATE TABLE "reminders" (
 	"created_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-ALTER TABLE "users" RENAME COLUMN "name" TO "display_name";--> statement-breakpoint
-ALTER TABLE "users" ALTER COLUMN "email" DROP NOT NULL;--> statement-breakpoint
-ALTER TABLE "users" ADD COLUMN "line_user_id" varchar(255);--> statement-breakpoint
 ALTER TABLE "categories" ADD CONSTRAINT "categories_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "events" ADD CONSTRAINT "events_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "reminders" ADD CONSTRAINT "reminders_event_id_events_id_fk" FOREIGN KEY ("event_id") REFERENCES "public"."events"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "users" ADD CONSTRAINT "users_line_user_id_unique" UNIQUE("line_user_id");
+ALTER TABLE "reminders" ADD CONSTRAINT "reminders_event_id_events_id_fk" FOREIGN KEY ("event_id") REFERENCES "public"."events"("id") ON DELETE cascade ON UPDATE no action;
