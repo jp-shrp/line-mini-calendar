@@ -61,6 +61,34 @@ export class Event extends Model implements SelectEvent {
     }
 
     /**
+     * 開始日時を "yyyy/MM/dd HH:mm" 形式で取得（日本時間）
+     */
+    get startDateTime(): string {
+        return formatJST(this.startDatetime, 'yyyy/MM/dd HH:mm')
+    }
+
+    /**
+     * 終了日時を "yyyy/MM/dd HH:mm" 形式で取得（日本時間）
+     */
+    get endDateTime(): string {
+        return formatJST(this.endDatetime, 'yyyy/MM/dd HH:mm')
+    }
+
+    /**
+     * 開始日付を "yyyy/MM/dd" 形式で取得（日本時間）
+     */
+    get startDate(): string {
+        return formatJST(this.startDatetime, 'yyyy/MM/dd')
+    }
+
+    /**
+     * 終了日付を "yyyy/MM/dd" 形式で取得（日本時間）
+     */
+    get endDate(): string {
+        return formatJST(this.endDatetime, 'yyyy/MM/dd')
+    }
+
+    /**
      * アイコンURLを取得（画面表示用）
      */
     get icon(): string | undefined {
