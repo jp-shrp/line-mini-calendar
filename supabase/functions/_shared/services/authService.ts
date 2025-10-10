@@ -1,5 +1,8 @@
 import type { createSupabaseAdminClient } from '_shared/clientAdmin'
-import { createInternalServerError } from '_shared/middlewares/middleware'
+import {
+    createInternalServerError,
+    createUnauthorizedError,
+} from '_shared/middlewares/middleware'
 
 /**
  * IDから決定論的UUID v4を生成する関数（SHA-256使用）
@@ -270,6 +273,128 @@ export const getOrCreateAuth0User = async (
     }
 
     const password = await generateDeterministicPassword(auth0Id)
+
+    return {
+        user: supabaseUser,
+        email: userEmail,
+        password,
+    }
+}
+
+/**
+ * LINE ID tokenをLINE Platform APIで検証
+ * @param idToken - LINE LIFF SDK から取得した ID token
+ * @returns 検証結果（LINE User IDを含む）
+ */
+export const verifyLineIdToken = async (
+    idToken: string
+): Promise<{
+    sub: string // LINE User ID
+    name?: string
+    picture?: string
+    email?: string
+}> => {
+    // モックトークンの検出（開発環境用）
+    if (idToken.startsWith('mock_id_token_')) {
+        console.log('[LINE] Mock ID token detected, returning mock user data')
+        return {
+            sub: 'U1234567890abcdef',
+            name: 'テストユーザー',
+            picture: 'https://via.placeholder.com/150',
+            email: 'mock.user@example.com',
+        }
+    }
+
+    // 実際のLINE Platform APIで検証
+    const response = await fetch('https://api.line.me/oauth2/v2.1/verify', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+            id_token: idToken,
+            client_id: Deno.env.get('LINE_LIFF_ID') || '',
+        }),
+    })
+
+    if (!response.ok) {
+        const errorText = await response.text()
+        console.error('[LINE] ID token verification failed:', errorText)
+        throw createUnauthorizedError('Invalid LINE ID token')
+    }
+
+    const data = await response.json()
+
+    return {
+        sub: data.sub,
+        name: data.name,
+        picture: data.picture,
+        email: data.email,
+    }
+}
+
+/**
+ * LINEユーザーを取得または作成し、認証情報を返す
+ */
+export const getOrCreateLineUser = async (
+    supabaseAdmin: ReturnType<typeof createSupabaseAdminClient>,
+    lineUser: {
+        sub: string
+        name?: string
+        picture?: string
+        email?: string
+    }
+): Promise<{
+    user: any
+    email: string
+    password: string
+}> => {
+    const lineId = `line_${lineUser.sub}`
+    const existingUser = await getUserByDeterministicId(supabaseAdmin, lineId)
+
+    let supabaseUser
+
+    if (!existingUser) {
+        // LINE User IDから決定論的UUIDを生成
+        const deterministicUUID = await generateDeterministicUUID(lineId)
+        const lineEmail = lineUser.email || `${deterministicUUID}@line.local`
+
+        supabaseUser = await createUserWithDeterministicId(
+            supabaseAdmin,
+            lineId,
+            {
+                email: lineEmail,
+                email_confirm: true,
+                user_metadata: {
+                    line_user_id: lineUser.sub,
+                    display_name: lineUser.name,
+                    picture_url: lineUser.picture,
+                    provider: 'line',
+                    created_at: new Date().toISOString(),
+                },
+            }
+        )
+    } else {
+        supabaseUser = await updateUserMetadata(
+            supabaseAdmin,
+            existingUser.id,
+            {
+                line_user_id: lineUser.sub,
+                display_name: lineUser.name,
+                picture_url: lineUser.picture,
+                provider: 'line',
+                last_login: new Date().toISOString(),
+            }
+        )
+    }
+
+    const userEmail = supabaseUser.email
+
+    if (!userEmail) {
+        throw createInternalServerError('User email is required for session')
+    }
+
+    const password = await generateDeterministicPassword(lineId)
 
     return {
         user: supabaseUser,
