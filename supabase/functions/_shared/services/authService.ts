@@ -402,3 +402,72 @@ export const getOrCreateLineUser = async (
         password,
     }
 }
+
+/**
+ * 既存の匿名アカウントにLINEアカウントを連携
+ * @param supabaseAdmin - Supabase Admin Client
+ * @param currentUserId - 現在のSupabaseユーザーID（匿名ユーザー）
+ * @param lineUser - LINEユーザー情報
+ * @returns 更新されたユーザー情報と認証情報
+ */
+export const linkLineToAnonymousAccount = async (
+    supabaseAdmin: ReturnType<typeof createSupabaseAdminClient>,
+    currentUserId: string,
+    lineUser: {
+        sub: string
+        name?: string
+        picture?: string
+        email?: string
+    }
+): Promise<{
+    user: any
+    email: string
+    password: string
+}> => {
+    // 既存のLINEアカウントが存在するか確認
+    const lineId = `line_${lineUser.sub}`
+    const existingLineUser = await getUserByDeterministicId(
+        supabaseAdmin,
+        lineId
+    )
+
+    if (existingLineUser) {
+        throw createInternalServerError(
+            'LINE account is already linked to another account'
+        )
+    }
+
+    // 現在のユーザーを取得
+    const { data: currentUser, error: getUserError } =
+        await supabaseAdmin.auth.admin.getUserById(currentUserId)
+
+    if (getUserError || !currentUser.user) {
+        throw createInternalServerError(
+            'Failed to get current user',
+            getUserError
+        )
+    }
+
+    // LINE情報でメタデータを更新
+    const updatedUser = await updateUserMetadata(supabaseAdmin, currentUserId, {
+        line_user_id: lineUser.sub,
+        display_name: lineUser.name,
+        picture_url: lineUser.picture,
+        provider: 'line_anonymous', // 匿名+LINE連携
+        linked_at: new Date().toISOString(),
+    })
+
+    // 決定論的パスワードは変更しない（既存のまま）
+    const anonymousId =
+        currentUser.user.user_metadata?.device_id ||
+        currentUserId.replace(/-/g, '')
+    const password = await generateDeterministicPassword(
+        `anonymous_${anonymousId}`
+    )
+
+    return {
+        user: updatedUser,
+        email: updatedUser.email || currentUser.user.email || '',
+        password,
+    }
+}

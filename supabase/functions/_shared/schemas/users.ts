@@ -1,5 +1,21 @@
 import { type InferInsertModel, type InferSelectModel } from 'drizzle-orm'
-import { pgTable, text, timestamp, uuid, varchar } from 'drizzle-orm/pg-core'
+import {
+    pgTable,
+    text,
+    timestamp,
+    uuid,
+    varchar,
+    pgEnum,
+} from 'drizzle-orm/pg-core'
+
+/**
+ * 認証方法の列挙型
+ */
+export const authMethodEnum = pgEnum('auth_method', [
+    'anonymous',
+    'line',
+    'line_anonymous',
+])
 
 /**
  * users テーブルのスキーマを定義します。
@@ -16,6 +32,7 @@ export const users = pgTable('users', {
     profileImage: text('profile_image'),
     email: varchar('email', { length: 255 }).unique(),
     auth0Id: text('auth0_id').unique(),
+    authMethod: authMethodEnum('auth_method').default('anonymous'),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
 })

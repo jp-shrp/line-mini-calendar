@@ -1,11 +1,15 @@
 /**
  * 認証Context
- * 匿名ログインの状態を管理します
+ * 統合認証（匿名認証 + LINE認証）の状態を管理します
  */
 
 'use client'
 
-import { useAnonymousAuth } from '@/src/hooks/useAnonymousAuth'
+import {
+    useIntegratedAuth,
+    type AuthMethod,
+} from '@/src/hooks/useIntegratedAuth'
+import type { Profile } from '@line/liff'
 import { createContext, useContext, ReactNode } from 'react'
 
 interface AuthContextType {
@@ -13,6 +17,10 @@ interface AuthContextType {
     isLoading: boolean
     userId: string | null
     error: Error | null
+    authMethod: AuthMethod
+    lineProfile: Profile | null
+    switchToLineAuth: () => Promise<void>
+    logout: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -22,7 +30,7 @@ interface AuthProviderProps {
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
-    const auth = useAnonymousAuth()
+    const auth = useIntegratedAuth()
 
     // ローディング中は何も表示しない
     if (auth.isLoading) {
@@ -30,7 +38,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
             <div className="flex h-screen items-center justify-center">
                 <div className="text-center">
                     <div className="mb-4 h-12 w-12 animate-spin rounded-full border-4 border-gray-300 border-t-blue-600"></div>
-                    <p className="text-gray-600">認証中...</p>
+                    <p className="text-gray-600">
+                        {auth.authMethod === 'line'
+                            ? 'LINE認証中...'
+                            : '認証中...'}
+                    </p>
                 </div>
             </div>
         )
