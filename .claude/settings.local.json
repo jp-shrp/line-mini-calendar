@@ -88,7 +88,8 @@
             "Bash(xargs sed:*)",
             "WebFetch(domain:ai.google.dev)",
             "mcp__serena__list_memories",
-            "WebFetch(domain:supabase.com)"
+            "WebFetch(domain:supabase.com)",
+            "WebFetch(domain:developers.line.biz)"
         ],
         "deny": [],
         "ask": []
