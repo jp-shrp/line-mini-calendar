@@ -21,29 +21,25 @@ fn-start-test:
 set-env:
 	supabase secrets set --env-file ./supabase/functions/.env
 fn-deploy-st:
-	supabase functions deploy ${name} --project-ref ****
+	supabase functions deploy ${name} --project-ref qcjkqqleblmyrwtglqnf
 fn-deploy-st-no-verify:
-	supabase functions deploy ${name} --project-ref **** --no-verify-jwt
-fn-deploy-st-push:
-	supabase functions deploy push --project-ref **** --no-verify-jwt
+	supabase functions deploy ${name} --project-ref qcjkqqleblmyrwtglqnf --no-verify-jwt
 fn-deploy-pr:
 	supabase functions deploy ${name} --project-ref ****
 fn-deploy-pr-no-verify:
 	supabase functions deploy ${name} --project-ref **** --no-verify-jwt
-fn-deploy-pr-push:
-	supabase functions deploy push --project-ref **** --no-verify-jwt
 set-env-st:
 	supabase secrets set --env-file ./supabase/functions/.env.st
 set-env-pr:
 	supabase secrets set --env-file ./supabase/functions/.env.pr --project-ref ****
 db-push-st:
-	supabase db push --linked ****
+	supabase db push --linked qcjkqqleblmyrwtglqnf
 db-push-pr:
 	supabase db push --linked ****
 db-diff:
 	supabase db diff --use-migra -f ${name}
 db-link-st:
-	supabase link --project-ref ****
+	supabase link --project-ref qcjkqqleblmyrwtglqnf
 db-link-pr:
 	supabase link --project-ref ****
 db-create-migrate:

@@ -172,7 +172,6 @@ const handleSafeOptionsError = <T>(
 
     // バリデーションエラーがある場合の処理
     if (result.validationErrors) {
-        console.warn('422 Validation Error: Validation errors present')
         // customErrorMessageがある場合はthrowする
         if (safeOptions.customErrorMessage) {
             const error = new Error(safeOptions.customErrorMessage) as any
@@ -375,10 +374,6 @@ export class UniversalApiClient {
                         break
                     }
 
-                    console.warn(
-                        `Fetch attempt ${attempt + 1} failed, retrying in ${retryDelay}ms...`,
-                        error
-                    )
                     await sleep(retryDelay)
                     continue
                 }
