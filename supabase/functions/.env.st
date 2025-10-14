@@ -1,4 +1,5 @@
+DATABASE_URL="postgresql://postgres.qcjkqqleblmyrwtglqnf:X6dNZ|zhnB!K@aws-1-ap-northeast-1.pooler.supabase.com:6543/postgres?pgbouncer=true"
+# Gemini AI Configuration
+GEMINI_API_KEY=AIzaSyCQlBiOEHly6pzJQIjOJzRxyASYS6ITIXg
 
-SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU
-DATABASE_URL=postgresql://postgres.dwlkcjrmafvirmojgmxh:WA5se78nh7DU@aws-0-ap-northeast-1.pooler.supabase.com:6543/postgres
-RAW_SUPABASE_URL=https://dwlkcjrmafvirmojgmxh.supabase.co
+LINE_LIFF_ID=2008266036-xZqN68P0

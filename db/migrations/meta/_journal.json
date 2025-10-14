@@ -1,20 +1,20 @@
 {
-  "version": "7",
-  "dialect": "postgresql",
-  "entries": [
-    {
-      "idx": 0,
-      "version": "7",
-      "when": 1760072798749,
-      "tag": "20251010050638_create_app_tables",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1760072853462,
-      "tag": "20251010050733_create_auth_trigger",
-      "breakpoints": true
-    }
-  ]
+    "version": "7",
+    "dialect": "postgresql",
+    "entries": [
+        {
+            "idx": 0,
+            "version": "7",
+            "when": 1760072798749,
+            "tag": "20251010050638_create_app_tables",
+            "breakpoints": true
+        },
+        {
+            "idx": 1,
+            "version": "7",
+            "when": 1760072853462,
+            "tag": "20251010050733_create_auth_trigger",
+            "breakpoints": true
+        }
+    ]
 }
