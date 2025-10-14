@@ -1,10 +1,11 @@
 /**
  * 保護されたルートのレイアウト
  * このグループ内のすべてのページは認証が必要
+ * 注: AuthProviderはClientWrapperで提供されているため、ここではAuthGuardのみを使用
  */
 'use client'
 
-import { AuthProvider, AuthGuard } from '@/src/contexts/AuthContext'
+import { AuthGuard } from '@/src/contexts/AuthContext'
 import { ReactNode } from 'react'
 
 interface ProtectedLayoutProps {
@@ -12,9 +13,5 @@ interface ProtectedLayoutProps {
 }
 
 export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
-    return (
-        <AuthProvider>
-            <AuthGuard>{children}</AuthGuard>
-        </AuthProvider>
-    )
+    return <AuthGuard>{children}</AuthGuard>
 }

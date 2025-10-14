@@ -59,7 +59,8 @@ enabled = true
 # Port to use for Supabase Studio.
 port = 84323
 # External URL of the API server that frontend connects to.
-api_url = "http://127.0.0.1"
+# api_url = "http://127.0.0.1"
+api_url = "http://0.0.0.0"
 # OpenAI API Key to use for Supabase AI in the Supabase Studio.
 openai_api_key = "env(OPENAI_API_KEY)"
 

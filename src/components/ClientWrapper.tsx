@@ -3,6 +3,7 @@ import { LoadingProvider } from '@/src/contexts/LoadingContext'
 import { ModalProvider, useModal } from '@/src/contexts/ModalContext'
 import { OnLoadingProvider } from '@/src/contexts/OnLoadingContext'
 import { LiffProvider } from '@/src/contexts/LiffContext'
+import { AuthProvider } from '@/src/contexts/AuthContext'
 import { queryClient, setGlobalErrorHandler } from '@/src/lib/query-client'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { ReactNode, useEffect } from 'react'
@@ -49,7 +50,9 @@ export default function ClientWrapper({ children }: ClientWrapperProps) {
                 <ModalProvider>
                     <ErrorHandlerSetup>
                         <OnLoadingProvider>
-                            <LiffProvider>{children}</LiffProvider>
+                            <LiffProvider>
+                                <AuthProvider>{children}</AuthProvider>
+                            </LiffProvider>
                         </OnLoadingProvider>
                     </ErrorHandlerSetup>
                 </ModalProvider>
