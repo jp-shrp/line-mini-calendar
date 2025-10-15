@@ -106,6 +106,27 @@ export function useSupabaseMutation<TData = any, TVariables = any>(
             },
             mutationFn: async (variables: any) => {
                 const supabase = createSupabaseClient()
+
+                // セッションからアクセストークンを取得
+                const {
+                    data: { session },
+                } = await supabase.auth.getSession()
+
+                // デバッグ情報を記録
+                if (typeof window !== 'undefined') {
+                    ;(window as any).__debugLastRequest = {
+                        function: functionName,
+                        timestamp: new Date().toLocaleTimeString(),
+                        hasAuth: !!session?.access_token,
+                        authLength: session?.access_token?.length || 0,
+                        headers: session?.access_token
+                            ? {
+                                  Authorization: `Bearer ${session.access_token.substring(0, 50)}...`,
+                              }
+                            : undefined,
+                    }
+                }
+
                 return await supabaseApiClient.callEdgeFunction<TData>(
                     async () => {
                         return supabase.functions.invoke(functionName, {
@@ -114,6 +135,11 @@ export function useSupabaseMutation<TData = any, TVariables = any>(
                                 method === 'DELETE'
                                     ? undefined
                                     : (variables as any),
+                            headers: session?.access_token
+                                ? {
+                                      Authorization: `Bearer ${session.access_token}`,
+                                  }
+                                : undefined,
                         })
                     },
                     edgeOptions
@@ -173,6 +199,27 @@ export function useSupabaseMutation<TData = any, TVariables = any>(
             },
             mutationFn: async (variables: TVariables) => {
                 const supabase = createSupabaseClient()
+
+                // セッションからアクセストークンを取得
+                const {
+                    data: { session },
+                } = await supabase.auth.getSession()
+
+                // デバッグ情報を記録
+                if (typeof window !== 'undefined') {
+                    ;(window as any).__debugLastRequest = {
+                        function: functionName,
+                        timestamp: new Date().toLocaleTimeString(),
+                        hasAuth: !!session?.access_token,
+                        authLength: session?.access_token?.length || 0,
+                        headers: session?.access_token
+                            ? {
+                                  Authorization: `Bearer ${session.access_token.substring(0, 50)}...`,
+                              }
+                            : undefined,
+                    }
+                }
+
                 return await supabaseApiClient.callEdgeFunction<TData>(
                     async () => {
                         return supabase.functions.invoke(functionName, {
@@ -181,6 +228,11 @@ export function useSupabaseMutation<TData = any, TVariables = any>(
                                 method === 'DELETE'
                                     ? undefined
                                     : (variables as any),
+                            headers: session?.access_token
+                                ? {
+                                      Authorization: `Bearer ${session.access_token}`,
+                                  }
+                                : undefined,
                         })
                     },
                     edgeOptions

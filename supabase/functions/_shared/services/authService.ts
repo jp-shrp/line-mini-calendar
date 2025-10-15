@@ -306,6 +306,15 @@ export const verifyLineIdToken = async (
     }
 
     // 実際のLINE Platform APIで検証
+    // LIFF IDからチャネルIDを抽出（例: "2008266036-xZqN68P0" -> "2008266036"）
+    const liffId = Deno.env.get('LINE_LIFF_ID') || ''
+    const channelId = liffId.split('-')[0]
+
+    if (!channelId) {
+        console.error('[LINE] LINE_LIFF_ID not configured or invalid')
+        throw createUnauthorizedError('LINE LIFF ID not configured')
+    }
+
     const response = await fetch('https://api.line.me/oauth2/v2.1/verify', {
         method: 'POST',
         headers: {
@@ -313,7 +322,7 @@ export const verifyLineIdToken = async (
         },
         body: new URLSearchParams({
             id_token: idToken,
-            client_id: Deno.env.get('LINE_LIFF_ID') || '',
+            client_id: channelId,
         }),
     })
 
