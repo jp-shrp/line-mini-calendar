@@ -2,6 +2,7 @@
  * AIテストページ
  * Phase 2: AI機能実装のテストページ
  */
+import DebugInfo from '@/src/app/DebugInfo'
 import { AITestClient } from './components/AITestClient'
 
 export const metadata = {
@@ -10,5 +11,10 @@ export const metadata = {
 }
 
 export default async function AITestPage() {
-    return <AITestClient />
+    return (
+        <>
+            <AITestClient />
+            <DebugInfo />
+        </>
+    )
 }

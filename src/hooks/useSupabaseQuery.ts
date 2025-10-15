@@ -83,9 +83,20 @@ export function useSupabaseQuery<TData = any>({
         queryKey,
         queryFn: async () => {
             const supabase = createSupabaseClient()
+
+            // セッションからアクセストークンを取得
+            const {
+                data: { session },
+            } = await supabase.auth.getSession()
+
             return await supabaseApiClient.callEdgeFunction<TData>(async () => {
                 return supabase.functions.invoke(functionNameWithParams, {
                     method: 'GET',
+                    headers: session?.access_token
+                        ? {
+                              Authorization: `Bearer ${session.access_token}`,
+                          }
+                        : undefined,
                 })
             }, edgeOptions)
         },

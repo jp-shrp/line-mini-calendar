@@ -72,6 +72,7 @@ export function useIntegratedAuth(): IntegratedAuthReturn {
 
     const [isLineAuthenticated, setIsLineAuthenticated] = useState(false)
     const [lineAuthError, setLineAuthError] = useState<Error | null>(null)
+    const [hasAttemptedLineAuth, setHasAttemptedLineAuth] = useState(false)
 
     // LIFF有効判定
     const isLiffEnabled =
@@ -86,6 +87,7 @@ export function useIntegratedAuth(): IntegratedAuthReturn {
         if (!shouldUseLine) return
         if (isLineAuthenticated) return
         if (!isLiffLoggedIn) return
+        if (hasAttemptedLineAuth) return
 
         const autoLineLogin = async () => {
             try {
@@ -102,11 +104,19 @@ export function useIntegratedAuth(): IntegratedAuthReturn {
                     '[useIntegratedAuth] Auto LINE login failed:',
                     err
                 )
+            } finally {
+                setHasAttemptedLineAuth(true)
             }
         }
 
         autoLineLogin()
-    }, [shouldUseLine, isLiffLoggedIn, isLineAuthenticated, loginWithLine])
+    }, [
+        shouldUseLine,
+        isLiffLoggedIn,
+        isLineAuthenticated,
+        hasAttemptedLineAuth,
+        loginWithLine,
+    ])
 
     /**
      * LINE認証に切り替え
@@ -116,12 +126,14 @@ export function useIntegratedAuth(): IntegratedAuthReturn {
             setLineAuthError(null)
             await loginWithLine()
             setIsLineAuthenticated(true)
+            setHasAttemptedLineAuth(true)
         } catch (err) {
             const error =
                 err instanceof Error
                     ? err
                     : new Error('Failed to switch to LINE auth')
             setLineAuthError(error)
+            setHasAttemptedLineAuth(true)
             throw error
         }
     }, [loginWithLine])
@@ -139,7 +151,7 @@ export function useIntegratedAuth(): IntegratedAuthReturn {
     if (shouldUseLine) {
         return {
             isAuthenticated: isLineAuthenticated,
-            isLoading: !isLiffReady || isLoggingIn,
+            isLoading: !isLiffReady || isLoggingIn || !hasAttemptedLineAuth,
             userId: anonymousAuth.userId, // Supabaseのユーザー情報を使用
             error: lineAuthError,
             authMethod: 'line',
