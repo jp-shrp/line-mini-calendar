@@ -17,7 +17,7 @@
         "npm"
     ],
     "deno.enablePaths": ["./supabase/functions"],
-    "deno.importMap": "./supabase/functions/import_map.json",
+    "deno.importMap": "./supabase/functions/deno.json",
     "deno.config": "./deno.json",
     "makefile.configureOnOpen": false,
     "editor.formatOnSave": true,

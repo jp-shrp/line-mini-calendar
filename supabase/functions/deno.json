@@ -43,5 +43,9 @@
         "_shared/services/aiEventService": "./_shared/services/aiEventService.ts",
         "_shared/clientAdmin": "./_shared/clientAdmin.ts",
         "_shared/utils/date-utils": "./_shared/utils/date-utils.ts"
+    },
+    "compilerOptions": {
+        "lib": ["deno.window"],
+        "strict": true
     }
 }
