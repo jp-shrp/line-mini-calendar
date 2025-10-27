@@ -13,6 +13,7 @@ import type {
     LineReplyRequest,
     LineTextMessage,
 } from '_shared/types/line-api-types'
+import type { AIEventCandidate } from '_shared/types/ai-api-types'
 
 /**
  * LINE Messaging APIのベースURL
@@ -306,6 +307,201 @@ export class LineMessageService {
                         },
                         style: 'primary',
                         color: '#1DB446',
+                    },
+                ],
+            },
+        }
+    }
+
+    /**
+     * LIFF起動ボタン付きイベント候補メッセージを作成
+     *
+     * @param candidates - イベント候補配列
+     * @param aiMessage - AIからのメッセージ
+     * @param sessionId - セッションID
+     * @param liffId - LIFF ID
+     * @returns Flex Message Bubble
+     */
+    createEventCandidatesWithLiffActions(
+        candidates: AIEventCandidate[],
+        aiMessage: string,
+        sessionId: string,
+        liffId: string
+    ): LineFlexBubble {
+        const liffUrl = `https://liff.line.me/${liffId}`
+
+        if (candidates.length === 0) {
+            return {
+                type: 'bubble',
+                body: {
+                    type: 'box',
+                    layout: 'vertical',
+                    contents: [
+                        {
+                            type: 'text',
+                            text: 'イベント候補',
+                            weight: 'bold',
+                            size: 'xl',
+                            color: '#1DB446',
+                        },
+                        {
+                            type: 'text',
+                            text: '候補が見つかりませんでした',
+                            size: 'sm',
+                            color: '#666666',
+                            wrap: true,
+                            margin: 'md',
+                        },
+                    ],
+                },
+                footer: {
+                    type: 'box',
+                    layout: 'vertical',
+                    contents: [
+                        {
+                            type: 'button',
+                            action: {
+                                type: 'uri',
+                                label: 'カレンダーを見る',
+                                uri: liffUrl,
+                            },
+                            style: 'primary',
+                            color: '#1DB446',
+                        },
+                    ],
+                },
+            }
+        }
+
+        // 表示する候補リスト（最大10件）
+        const displayCandidates = candidates.slice(0, 10)
+        const remainingCount = candidates.length - displayCandidates.length
+
+        const candidateItems = displayCandidates.map((candidate) => {
+            const startDate = new Date(candidate.startDatetime)
+            const dateStr = startDate.toLocaleDateString('ja-JP', {
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+            })
+
+            const contents: Array<{
+                type: 'text'
+                text: string
+                weight?: 'bold'
+                size?: 'sm' | 'xs' | 'xxs'
+                color?: string
+                margin?: 'xs' | 'sm' | 'md'
+                wrap?: boolean
+            }> = [
+                {
+                    type: 'text',
+                    text: candidate.title,
+                    weight: 'bold',
+                    size: 'sm',
+                    wrap: true,
+                },
+                {
+                    type: 'text',
+                    text: dateStr,
+                    size: 'xs',
+                    color: '#999999',
+                    margin: 'xs',
+                },
+            ]
+
+            if (candidate.isDuplicate) {
+                contents.push({
+                    type: 'text',
+                    text: `⚠️ ${candidate.duplicateReason || '重複の可能性'}`,
+                    size: 'xxs',
+                    color: '#FF6B6B',
+                    margin: 'xs',
+                    wrap: true,
+                })
+            }
+
+            return {
+                type: 'box' as const,
+                layout: 'vertical' as const,
+                contents,
+                margin: 'md' as const,
+                paddingAll: '8px',
+                backgroundColor: candidate.color
+                    ? `${candidate.color}15`
+                    : '#F5F5F5',
+                cornerRadius: '8px',
+            }
+        })
+
+        // 残りの件数表示を追加
+        if (remainingCount > 0) {
+            candidateItems.push({
+                type: 'box' as const,
+                layout: 'vertical' as const,
+                contents: [
+                    {
+                        type: 'text' as const,
+                        text: `他${remainingCount}件`,
+                        size: 'xs' as const,
+                        color: '#999999',
+                    },
+                ],
+                margin: 'md' as const,
+                paddingAll: '8px',
+                backgroundColor: '#F5F5F5',
+                cornerRadius: '8px',
+            })
+        }
+
+        return {
+            type: 'bubble',
+            body: {
+                type: 'box',
+                layout: 'vertical',
+                contents: [
+                    {
+                        type: 'text',
+                        text: aiMessage || 'イベント候補が見つかりました',
+                        weight: 'bold',
+                        size: 'lg',
+                        color: '#1DB446',
+                        wrap: true,
+                    },
+                    {
+                        type: 'text',
+                        text: `${candidates.length}件の候補`,
+                        size: 'sm',
+                        color: '#666666',
+                        margin: 'sm',
+                    },
+                    ...candidateItems,
+                ],
+            },
+            footer: {
+                type: 'box',
+                layout: 'vertical',
+                spacing: 'sm',
+                contents: [
+                    {
+                        type: 'button',
+                        action: {
+                            type: 'uri',
+                            label: '全て登録',
+                            uri: `${liffUrl}/line-register?sessionId=${sessionId}&mode=all`,
+                        },
+                        style: 'primary',
+                        color: '#1DB446',
+                    },
+                    {
+                        type: 'button',
+                        action: {
+                            type: 'uri',
+                            label: '個別選択',
+                            uri: `${liffUrl}/line-register?sessionId=${sessionId}&mode=select`,
+                        },
+                        style: 'secondary',
                     },
                 ],
             },

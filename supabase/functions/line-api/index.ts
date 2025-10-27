@@ -7,8 +7,11 @@
 
 import { apiHandler, initApi } from '_shared/middlewares/middleware'
 import { LineWebhookService } from '_shared/services/lineWebhookService'
+import { getLineEventCandidateSession } from '_shared/services/lineEventCandidateSessionService'
 import type { LineWebhookBody } from '_shared/types/line-api-types'
+import { SuccessResponse } from '_shared/types/responses'
 import { validateLineSignature } from '_shared/utils/line-signature'
+import { HTTPException } from 'hono/http-exception'
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 
 // 環境変数の取得
@@ -37,6 +40,45 @@ app.get('/', (c) => {
         timestamp: new Date().toISOString(),
     })
 })
+
+/**
+ * セッション取得エンドポイント
+ * GET /line-api/get-session
+ *
+ * @description
+ * LIFFアプリからセッション情報を取得するエンドポイント
+ */
+app.get(
+    '/get-session',
+    apiHandler(async (c) => {
+        const sessionId = c.req.query('sessionId')
+
+        if (!sessionId) {
+            throw new HTTPException(400, {
+                message: 'sessionId is required',
+            })
+        }
+
+        const session = await getLineEventCandidateSession(sessionId)
+
+        if (!session) {
+            throw new HTTPException(404, {
+                message: 'Session not found or expired',
+            })
+        }
+
+        return c.json(
+            new SuccessResponse({
+                data: {
+                    sessionId: session.sessionId,
+                    aiMessage: session.aiMessage || '',
+                    candidates: session.candidates,
+                },
+                message: 'セッション情報を取得しました',
+            })
+        )
+    })
+)
 
 /**
  * LINE Webhook エンドポイント

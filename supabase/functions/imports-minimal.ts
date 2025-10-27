@@ -1,15 +1,9 @@
 // Hono Framework (minimal for auth-api)
-export { HTTPException } from 'https://jsr.io/@hono/hono/4.7.6/src/http-exception.ts'
-export { Hono } from 'https://jsr.io/@hono/hono/4.7.6/src/index.ts'
-export type {
-    Context,
-    Input,
-    MiddlewareHandler,
-    Next,
-} from 'https://jsr.io/@hono/hono/4.7.6/src/index.ts'
-export { cors } from 'https://jsr.io/@hono/hono/4.7.6/src/middleware/cors/index.ts'
-export { jwt } from 'https://jsr.io/@hono/hono/4.7.6/src/middleware/jwt/index.ts'
-export { type Env } from 'https://jsr.io/@hono/hono/4.7.6/src/types.ts'
+export { Hono, type Env } from 'hono'
+export type { Context, Input, MiddlewareHandler, Next } from 'hono'
+export { cors } from 'hono/cors'
+export { HTTPException } from 'hono/http-exception'
+export { jwt } from 'hono/jwt'
 
 // Validation
 export { z } from 'https://deno.land/x/zod@v3.24.2/mod.ts'

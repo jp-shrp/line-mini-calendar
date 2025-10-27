@@ -19,6 +19,7 @@
         "_shared/schemas/events": "./_shared/schemas/events.ts",
         "_shared/schemas/reminders": "./_shared/schemas/reminders.ts",
         "_shared/schemas/categories": "./_shared/schemas/categories.ts",
+        "_shared/schemas/lineEventCandidateSessions": "./_shared/schemas/lineEventCandidateSessions.ts",
         "_shared/validations": "./_shared/validations/index.ts",
         "_shared/validations/usersValidation": "./_shared/validations/usersValidation.ts",
         "_shared/validations/eventsValidation": "./_shared/validations/eventsValidation.ts",
@@ -44,14 +45,22 @@
         "_shared/services/aiEventService": "./_shared/services/aiEventService.ts",
         "_shared/services/lineMessageService": "./_shared/services/lineMessageService.ts",
         "_shared/services/lineWebhookService": "./_shared/services/lineWebhookService.ts",
+        "_shared/services/lineEventCandidateSessionService": "./_shared/services/lineEventCandidateSessionService.ts",
         "_shared/clientAdmin": "./_shared/clientAdmin.ts",
         "_shared/utils/date-utils": "./_shared/utils/date-utils.ts",
         "_shared/utils/line-signature": "./_shared/utils/line-signature.ts",
         "_shared/types/line-api-types": "./_shared/types/line-api-types.ts"
     },
-    "nodeModulesDir": "auto",
+    "lint": {
+        "include": ["supabase/functions/"],
+        "exclude": ["supabase/functions/_shared/__tests__/"],
+        "rules": {
+            "tags": ["recommended"]
+        }
+    },
     "compilerOptions": {
         "lib": ["deno.window"],
         "strict": true
-    }
+    },
+    "lock": false
 }

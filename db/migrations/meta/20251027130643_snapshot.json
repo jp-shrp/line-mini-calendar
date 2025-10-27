@@ -1,0 +1,336 @@
+{
+    "id": "da2dd7f4-97d2-474e-a533-e2c704c8ce20",
+    "prevId": "d83a3d0f-70f0-4c8a-bc27-82fb91ea0836",
+    "version": "7",
+    "dialect": "postgresql",
+    "tables": {
+        "public.categories": {
+            "name": "categories",
+            "schema": "",
+            "columns": {
+                "id": {
+                    "name": "id",
+                    "type": "uuid",
+                    "primaryKey": true,
+                    "notNull": true,
+                    "default": "gen_random_uuid()"
+                },
+                "user_id": {
+                    "name": "user_id",
+                    "type": "uuid",
+                    "primaryKey": false,
+                    "notNull": false
+                },
+                "name": {
+                    "name": "name",
+                    "type": "varchar(50)",
+                    "primaryKey": false,
+                    "notNull": true
+                },
+                "color": {
+                    "name": "color",
+                    "type": "varchar(7)",
+                    "primaryKey": false,
+                    "notNull": true
+                },
+                "icon": {
+                    "name": "icon",
+                    "type": "text",
+                    "primaryKey": false,
+                    "notNull": false
+                },
+                "is_system_default": {
+                    "name": "is_system_default",
+                    "type": "boolean",
+                    "primaryKey": false,
+                    "notNull": true,
+                    "default": false
+                },
+                "created_at": {
+                    "name": "created_at",
+                    "type": "timestamp",
+                    "primaryKey": false,
+                    "notNull": true,
+                    "default": "now()"
+                }
+            },
+            "indexes": {},
+            "foreignKeys": {
+                "categories_user_id_users_id_fk": {
+                    "name": "categories_user_id_users_id_fk",
+                    "tableFrom": "categories",
+                    "columnsFrom": ["user_id"],
+                    "tableTo": "users",
+                    "columnsTo": ["id"],
+                    "onUpdate": "no action",
+                    "onDelete": "cascade"
+                }
+            },
+            "compositePrimaryKeys": {},
+            "uniqueConstraints": {},
+            "policies": {},
+            "checkConstraints": {},
+            "isRLSEnabled": false
+        },
+        "public.events": {
+            "name": "events",
+            "schema": "",
+            "columns": {
+                "id": {
+                    "name": "id",
+                    "type": "uuid",
+                    "primaryKey": true,
+                    "notNull": true,
+                    "default": "gen_random_uuid()"
+                },
+                "user_id": {
+                    "name": "user_id",
+                    "type": "uuid",
+                    "primaryKey": false,
+                    "notNull": true
+                },
+                "title": {
+                    "name": "title",
+                    "type": "varchar(100)",
+                    "primaryKey": false,
+                    "notNull": true
+                },
+                "description": {
+                    "name": "description",
+                    "type": "text",
+                    "primaryKey": false,
+                    "notNull": false
+                },
+                "category": {
+                    "name": "category",
+                    "type": "varchar(50)",
+                    "primaryKey": false,
+                    "notNull": true,
+                    "default": "'other'"
+                },
+                "icon_url": {
+                    "name": "icon_url",
+                    "type": "text",
+                    "primaryKey": false,
+                    "notNull": false
+                },
+                "start_datetime": {
+                    "name": "start_datetime",
+                    "type": "timestamp",
+                    "primaryKey": false,
+                    "notNull": true
+                },
+                "end_datetime": {
+                    "name": "end_datetime",
+                    "type": "timestamp",
+                    "primaryKey": false,
+                    "notNull": true
+                },
+                "color": {
+                    "name": "color",
+                    "type": "varchar(7)",
+                    "primaryKey": false,
+                    "notNull": false
+                },
+                "is_deleted": {
+                    "name": "is_deleted",
+                    "type": "boolean",
+                    "primaryKey": false,
+                    "notNull": true,
+                    "default": false
+                },
+                "created_at": {
+                    "name": "created_at",
+                    "type": "timestamp",
+                    "primaryKey": false,
+                    "notNull": true,
+                    "default": "now()"
+                },
+                "updated_at": {
+                    "name": "updated_at",
+                    "type": "timestamp",
+                    "primaryKey": false,
+                    "notNull": true,
+                    "default": "now()"
+                }
+            },
+            "indexes": {},
+            "foreignKeys": {
+                "events_user_id_users_id_fk": {
+                    "name": "events_user_id_users_id_fk",
+                    "tableFrom": "events",
+                    "columnsFrom": ["user_id"],
+                    "tableTo": "users",
+                    "columnsTo": ["id"],
+                    "onUpdate": "no action",
+                    "onDelete": "cascade"
+                }
+            },
+            "compositePrimaryKeys": {},
+            "uniqueConstraints": {},
+            "policies": {},
+            "checkConstraints": {},
+            "isRLSEnabled": false
+        },
+        "public.users": {
+            "name": "users",
+            "schema": "",
+            "columns": {
+                "id": {
+                    "name": "id",
+                    "type": "uuid",
+                    "primaryKey": true,
+                    "notNull": true
+                },
+                "line_user_id": {
+                    "name": "line_user_id",
+                    "type": "varchar(255)",
+                    "primaryKey": false,
+                    "notNull": false
+                },
+                "display_name": {
+                    "name": "display_name",
+                    "type": "varchar(100)",
+                    "primaryKey": false,
+                    "notNull": false
+                },
+                "profile_image": {
+                    "name": "profile_image",
+                    "type": "text",
+                    "primaryKey": false,
+                    "notNull": false
+                },
+                "email": {
+                    "name": "email",
+                    "type": "varchar(255)",
+                    "primaryKey": false,
+                    "notNull": false
+                },
+                "auth0_id": {
+                    "name": "auth0_id",
+                    "type": "text",
+                    "primaryKey": false,
+                    "notNull": false
+                },
+                "auth_method": {
+                    "name": "auth_method",
+                    "type": "auth_method",
+                    "typeSchema": "public",
+                    "primaryKey": false,
+                    "notNull": false,
+                    "default": "'anonymous'"
+                },
+                "created_at": {
+                    "name": "created_at",
+                    "type": "timestamp",
+                    "primaryKey": false,
+                    "notNull": true,
+                    "default": "now()"
+                },
+                "updated_at": {
+                    "name": "updated_at",
+                    "type": "timestamp",
+                    "primaryKey": false,
+                    "notNull": true,
+                    "default": "now()"
+                }
+            },
+            "indexes": {},
+            "foreignKeys": {},
+            "compositePrimaryKeys": {},
+            "uniqueConstraints": {
+                "users_line_user_id_unique": {
+                    "name": "users_line_user_id_unique",
+                    "columns": ["line_user_id"],
+                    "nullsNotDistinct": false
+                },
+                "users_email_unique": {
+                    "name": "users_email_unique",
+                    "columns": ["email"],
+                    "nullsNotDistinct": false
+                },
+                "users_auth0_id_unique": {
+                    "name": "users_auth0_id_unique",
+                    "columns": ["auth0_id"],
+                    "nullsNotDistinct": false
+                }
+            },
+            "policies": {},
+            "checkConstraints": {},
+            "isRLSEnabled": false
+        },
+        "public.reminders": {
+            "name": "reminders",
+            "schema": "",
+            "columns": {
+                "id": {
+                    "name": "id",
+                    "type": "uuid",
+                    "primaryKey": true,
+                    "notNull": true,
+                    "default": "gen_random_uuid()"
+                },
+                "event_id": {
+                    "name": "event_id",
+                    "type": "uuid",
+                    "primaryKey": false,
+                    "notNull": true
+                },
+                "remind_at": {
+                    "name": "remind_at",
+                    "type": "timestamp",
+                    "primaryKey": false,
+                    "notNull": true
+                },
+                "is_sent": {
+                    "name": "is_sent",
+                    "type": "boolean",
+                    "primaryKey": false,
+                    "notNull": true,
+                    "default": false
+                },
+                "created_at": {
+                    "name": "created_at",
+                    "type": "timestamp",
+                    "primaryKey": false,
+                    "notNull": true,
+                    "default": "now()"
+                }
+            },
+            "indexes": {},
+            "foreignKeys": {
+                "reminders_event_id_events_id_fk": {
+                    "name": "reminders_event_id_events_id_fk",
+                    "tableFrom": "reminders",
+                    "columnsFrom": ["event_id"],
+                    "tableTo": "events",
+                    "columnsTo": ["id"],
+                    "onUpdate": "no action",
+                    "onDelete": "cascade"
+                }
+            },
+            "compositePrimaryKeys": {},
+            "uniqueConstraints": {},
+            "policies": {},
+            "checkConstraints": {},
+            "isRLSEnabled": false
+        }
+    },
+    "enums": {
+        "public.auth_method": {
+            "name": "auth_method",
+            "schema": "public",
+            "values": ["anonymous", "line", "line_anonymous"]
+        }
+    },
+    "schemas": {},
+    "views": {},
+    "sequences": {},
+    "roles": {},
+    "policies": {},
+    "_meta": {
+        "columns": {},
+        "schemas": {},
+        "tables": {}
+    }
+}

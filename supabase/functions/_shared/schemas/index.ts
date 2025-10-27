@@ -5,3 +5,6 @@ export * from '_shared/schemas/users'
 export * from '_shared/schemas/events'
 export * from '_shared/schemas/reminders'
 export * from '_shared/schemas/categories'
+
+// LINE関連
+export * from '_shared/schemas/lineEventCandidateSessions'

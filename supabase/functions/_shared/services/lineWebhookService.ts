@@ -7,6 +7,7 @@
 
 import { aiGenerateEventCandidates } from '_shared/services/aiEventService'
 import { LineMessageService } from '_shared/services/lineMessageService'
+import { createLineEventCandidateSession } from '_shared/services/lineEventCandidateSessionService'
 import { getUserByLineUserId } from '_shared/services/userService'
 import type {
     LineFollowEvent,
@@ -110,10 +111,21 @@ export class LineWebhookService {
 
             const result = await aiGenerateEventCandidates(user.id, messageText)
 
+            // セッションを作成
+            const session = await createLineEventCandidateSession({
+                userId: user.id,
+                lineUserId,
+                query: messageText,
+                aiMessage: result.aiMessage,
+                candidates: result.candidates,
+            })
+
+            // LIFF起動ボタン付きメッセージを作成
             const resultBubble =
-                this.lineMessageService.createEventCandidatesMessage(
+                this.lineMessageService.createEventCandidatesWithLiffActions(
                     result.candidates,
                     result.aiMessage,
+                    session.sessionId,
                     this.liffId
                 )
 

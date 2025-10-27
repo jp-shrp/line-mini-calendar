@@ -353,3 +353,32 @@ export interface LineApiErrorResponse {
         property: string
     }>
 }
+
+/**
+ * LINE イベント候補セッション型
+ *
+ * @description
+ * LINE経由でAI生成したイベント候補を一時保存するためのセッション
+ */
+export interface LineEventCandidateSession {
+    id: string
+    sessionId: string
+    userId: string
+    lineUserId: string
+    query: string
+    aiMessage: string | null
+    candidates: unknown // JSONB型 - EventCandidate[]として扱う
+    createdAt: Date
+    expiresAt: Date
+}
+
+/**
+ * LINE イベント候補セッション作成入力型
+ */
+export interface CreateLineEventCandidateSessionInput {
+    userId: string
+    lineUserId: string
+    query: string
+    aiMessage?: string
+    candidates: unknown // EventCandidate[]として渡す
+}
