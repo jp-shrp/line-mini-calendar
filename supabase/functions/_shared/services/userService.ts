@@ -26,3 +26,16 @@ export async function getAllUsers() {
 
     return usersList
 }
+
+/**
+ * LINE User IDに基づいてユーザー情報を取得する
+ * @param lineUserId LINE User ID
+ * @returns ユーザー情報（見つからない場合はundefined）
+ */
+export async function getUserByLineUserId(lineUserId: string) {
+    const user = await db.query.users.findFirst({
+        where: eq(users.lineUserId, lineUserId),
+    })
+
+    return user
+}
