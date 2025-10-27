@@ -9,6 +9,7 @@ import { apiHandler, initApi } from '_shared/middlewares/middleware'
 import { LineWebhookService } from '_shared/services/lineWebhookService'
 import { getLineEventCandidateSession } from '_shared/services/lineEventCandidateSessionService'
 import type { LineWebhookBody } from '_shared/types/line-api-types'
+import { SuccessResponse } from '_shared/types/responses'
 import { validateLineSignature } from '_shared/utils/line-signature'
 import { HTTPException } from 'hono/http-exception'
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
@@ -66,11 +67,16 @@ app.get(
             })
         }
 
-        return c.json({
-            sessionId: session.sessionId,
-            aiMessage: session.aiMessage || '',
-            candidates: session.candidates,
-        })
+        return c.json(
+            new SuccessResponse({
+                data: {
+                    sessionId: session.sessionId,
+                    aiMessage: session.aiMessage || '',
+                    candidates: session.candidates,
+                },
+                message: 'セッション情報を取得しました',
+            })
+        )
     })
 )
 

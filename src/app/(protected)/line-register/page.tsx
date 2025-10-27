@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import { LineRegisterClient } from './components/LineRegisterClient'
 
 /**
@@ -7,5 +8,17 @@ import { LineRegisterClient } from './components/LineRegisterClient'
  * LIFF SDKを使用するため、LineRegisterClientに委譲します。
  */
 export default function LineRegisterPage() {
-    return <LineRegisterClient />
+    return (
+        <Suspense
+            fallback={
+                <div className="flex min-h-screen items-center justify-center bg-gray-50">
+                    <div className="text-center">
+                        <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-blue-600 border-t-transparent"></div>
+                        <p className="mt-4 text-gray-600">読み込み中...</p>
+                    </div>
+                </div>
+            }>
+            <LineRegisterClient />
+        </Suspense>
+    )
 }
