@@ -50,6 +50,13 @@
         "_shared/types/line-api-types": "./_shared/types/line-api-types.ts"
     },
     "nodeModulesDir": "auto",
+    "lint": {
+        "include": ["supabase/functions/"],
+        "exclude": ["supabase/functions/_shared/__tests__/"],
+        "rules": {
+            "tags": ["recommended"]
+        }
+    },
     "compilerOptions": {
         "lib": ["deno.window"],
         "strict": true
