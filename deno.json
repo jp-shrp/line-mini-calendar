@@ -53,7 +53,6 @@
         "_shared/utils/line-signature": "./supabase/functions/_shared/utils/line-signature.ts",
         "_shared/types/line-api-types": "./supabase/functions/_shared/types/line-api-types.ts"
     },
-    "nodeModulesDir": "auto",
     "lint": {
         "include": ["supabase/functions/"],
         "exclude": ["supabase/functions/_shared/__tests__/"],
