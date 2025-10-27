@@ -1,5 +1,5 @@
 import * as schema from '_shared/schemas'
-import { drizzle } from 'imports'
+import { drizzle, type PostgresJsDatabase } from 'imports'
 import postgres from 'postgres'
 
 // 環境変数からDB接続情報を取得
@@ -12,12 +12,10 @@ export const client = postgres(connectionString, { prepare: false })
 export const db = drizzle(client, { schema })
 
 // DBクライアントを使用したトランザクション処理のヘルパー関数
-export async function withTransaction<T>(
-    //callback: (tx: PostgresJsDatabase<typeof schema>) => Promise<T>,
-    callback: (tx: any) => Promise<T>
+export function withTransaction<T>(
+    callback: (tx: PostgresJsDatabase<typeof schema>) => Promise<T>
 ): Promise<T> {
     return db.transaction(async (tx) => {
-        const result = await callback(tx)
-        return result
+        return await callback(tx)
     })
 }

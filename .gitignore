@@ -49,3 +49,6 @@ next-env.d.ts
 .server/node_modules/
 .server/server.log
 .playwright-mcp/
+
+# deno
+deno.lock

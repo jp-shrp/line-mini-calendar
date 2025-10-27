@@ -3,6 +3,7 @@ import {
     createInternalServerError,
     createUnauthorizedError,
 } from '_shared/middlewares/middleware'
+import type { User } from 'https://esm.sh/@supabase/supabase-js@2'
 
 /**
  * IDから決定論的UUID v4を生成する関数（SHA-256使用）
@@ -161,7 +162,7 @@ export const getOrCreateAnonymousUser = async (
     supabaseAdmin: ReturnType<typeof createSupabaseAdminClient>,
     deviceId: string
 ): Promise<{
-    user: any
+    user: User
     email: string
     password: string
 }> => {
@@ -225,10 +226,10 @@ export const getOrCreateAuth0User = async (
         name?: string
         nickname?: string
         picture?: string
-        [key: string]: any
+        [key: string]: string | undefined
     }
 ): Promise<{
-    user: any
+    user: User
     email: string
     password: string
 }> => {
@@ -354,7 +355,7 @@ export const getOrCreateLineUser = async (
         email?: string
     }
 ): Promise<{
-    user: any
+    user: User
     email: string
     password: string
 }> => {
@@ -429,7 +430,7 @@ export const linkLineToAnonymousAccount = async (
         email?: string
     }
 ): Promise<{
-    user: any
+    user: User
     email: string
     password: string
 }> => {

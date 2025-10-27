@@ -7,6 +7,7 @@ import {
 } from '_shared/middlewares/middleware'
 import { getPaginationInfoFromRequest } from '_shared/paginationUtility'
 import type { SelectUser } from '_shared/schemas/users'
+import type { SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import {
     createEvent,
     deleteEvent,
@@ -32,7 +33,7 @@ import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 // 型拡張 - Honoのコンテキストにユーザー情報を追加
 export type CalendarVariables = Variables & {
     user: SelectUser
-    supabase: any
+    supabase: SupabaseClient
 }
 
 // 共通初期化関数を使ってAPIアプリケーションを初期化
@@ -41,11 +42,13 @@ const app = initApi<{ Variables: CalendarVariables }>('/calendar-api')
 // ルート定義
 app.get(
     '/',
-    apiHandler(async (c) => {
-        return c.json({
-            message: 'Calendar API is running',
-            timestamp: new Date().toISOString(),
-        })
+    apiHandler((c) => {
+        return Promise.resolve(
+            c.json({
+                message: 'Calendar API is running',
+                timestamp: new Date().toISOString(),
+            })
+        )
     })
 )
 

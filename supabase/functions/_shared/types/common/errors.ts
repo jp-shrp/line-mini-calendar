@@ -31,5 +31,5 @@ export interface StandardApiError {
     message: string
     code: ErrorCode
     status: number
-    details?: any
+    details?: Record<string, unknown> | Array<Record<string, unknown>>
 }

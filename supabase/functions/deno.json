@@ -2,15 +2,16 @@
     "imports": {
         "imports": "./imports.ts",
         "db": "./db.ts",
-        "zod": "npm:zod",
-        "hono": "https://jsr.io/@hono/hono/4.7.6/src/index.ts",
-        "hono/cors": "https://jsr.io/@hono/hono/4.7.6/src/middleware/cors/index.ts",
-        "hono/jwt": "https://jsr.io/@hono/hono/4.7.6/src/middleware/jwt/index.ts",
-        "hono/http-exception": "https://jsr.io/@hono/hono/4.7.6/src/http-exception.ts",
+        "zod": "npm:zod@^3.23.8",
+        "hono": "jsr:@hono/hono@4.7.6",
+        "hono/cors": "jsr:@hono/hono@4.7.6/cors",
+        "hono/jwt": "jsr:@hono/hono@4.7.6/jwt",
+        "hono/http-exception": "jsr:@hono/hono@4.7.6/http-exception",
         "postgres": "npm:postgres",
         "drizzle-orm": "npm:drizzle-orm",
         "drizzle-orm/pg-core": "npm:drizzle-orm/pg-core",
         "drizzle-orm/postgres-js": "npm:drizzle-orm/postgres-js",
+        "openai": "npm:openai@^4.52.5",
         "_shared/utility": "./_shared/utility.ts",
         "_shared/schemas": "./_shared/schemas/index.ts",
         "_shared/schemas/users": "./_shared/schemas/users.ts",
@@ -48,6 +49,7 @@
         "_shared/utils/line-signature": "./_shared/utils/line-signature.ts",
         "_shared/types/line-api-types": "./_shared/types/line-api-types.ts"
     },
+    "nodeModulesDir": "auto",
     "compilerOptions": {
         "lib": ["deno.window"],
         "strict": true

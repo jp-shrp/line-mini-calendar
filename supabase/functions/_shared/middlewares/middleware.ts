@@ -9,7 +9,11 @@ import {
     type Next,
 } from 'hono'
 import { cors } from 'hono/cors'
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import {
+    createClient,
+    type SupabaseClient,
+    type User,
+} from 'https://esm.sh/@supabase/supabase-js@2'
 import { z, ZodError } from 'zod'
 
 /**
@@ -74,7 +78,10 @@ export const authMiddleware: MiddlewareHandler = async (
         // ApiErrorの場合
         if (err instanceof ApiError) {
             const response = err.toStandardError()
-            return c.json(response, err.status as any)
+            return c.json(
+                response,
+                err.status as 400 | 401 | 403 | 404 | 422 | 500
+            )
         }
 
         // その他の予期しないエラー
@@ -111,7 +118,10 @@ export const errorMiddleware: MiddlewareHandler = async (
         // ApiErrorクラスの場合
         if (err instanceof ApiError) {
             const response = err.toStandardError()
-            return c.json(response, err.status as any)
+            return c.json(
+                response,
+                err.status as 400 | 401 | 403 | 404 | 422 | 500
+            )
         }
 
         // Zodバリデーションエラーの場合
@@ -184,7 +194,7 @@ export class ApiError extends Error {
     title: string
     status: number
     code: string
-    details?: any
+    details?: Record<string, unknown> | Array<Record<string, unknown>>
     override cause?: unknown
 
     constructor({
@@ -199,7 +209,7 @@ export class ApiError extends Error {
         status: number
         message: string
         code: string
-        details?: any
+        details?: Record<string, unknown> | Array<Record<string, unknown>>
         cause?: unknown
     }) {
         super(message)
@@ -235,7 +245,7 @@ export const createApiError = (
     status: number,
     customMessage?: string,
     customTitle?: string,
-    details?: any,
+    details?: Record<string, unknown> | Array<Record<string, unknown>>,
     cause?: unknown
 ): ApiError => {
     const { title, message } = getErrorMessage(code, customMessage, customTitle)
@@ -262,7 +272,10 @@ export const createForbiddenError = (customMessage?: string) =>
 export const createNotFoundError = (customMessage?: string) =>
     createApiError(ERROR_CODES.NOT_FOUND, 404, customMessage)
 
-export const createValidationError = (details?: any, customMessage?: string) =>
+export const createValidationError = (
+    details?: Record<string, unknown> | Array<Record<string, unknown>>,
+    customMessage?: string
+) =>
     createApiError(
         ERROR_CODES.VALIDATION_ERROR,
         422,
@@ -375,7 +388,10 @@ export const apiHandler = <T>(
                 }
 
                 const response = error.toStandardError()
-                return c.json(response, error.status as any)
+                return c.json(
+                    response,
+                    error.status as 400 | 401 | 403 | 404 | 422 | 500
+                )
             }
 
             // その他の予期しないエラー
@@ -432,7 +448,7 @@ export const validatedApiHandler = <T>(
                     status: 400,
                 }).toStandardError()
 
-                return c.json(response, 400 as any)
+                return c.json(response, 400 as const)
             }
 
             // Zodでバリデーション
@@ -477,7 +493,10 @@ export const validatedApiHandler = <T>(
             // ApiErrorクラスの場合
             if (error instanceof ApiError) {
                 const response = error.toStandardError()
-                return c.json(response, error.status as any)
+                return c.json(
+                    response,
+                    error.status as 400 | 401 | 403 | 404 | 422 | 500
+                )
             }
 
             // その他の予期しないエラー
@@ -541,7 +560,7 @@ export const initApi = <E extends Env = Env>(basePath: string) => {
  * initApiで使用するVariablesの型定義
  */
 export interface Variables {
-    user?: any // ユーザー情報（authMiddlewareで設定）
-    supabase?: any // Supabaseクライアント（authMiddlewareで設定）
-    [key: string]: any // その他の変数
+    user?: User // ユーザー情報（authMiddlewareで設定）
+    supabase?: SupabaseClient // Supabaseクライアント（authMiddlewareで設定）
+    [key: string]: unknown // その他の変数
 }
