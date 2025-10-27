@@ -311,4 +311,172 @@ export class LineMessageService {
             },
         }
     }
+
+    /**
+     * イベント候補リストのFlex Messageを作成
+     *
+     * @param candidates - イベント候補配列
+     * @param liffId - LIFF ID
+     * @returns Flex Message Bubble
+     */
+    createEventCandidatesMessage(
+        candidates: Array<{
+            title: string
+            description?: string
+            startDatetime: string
+            endDatetime: string
+            category?: string
+            color?: string
+            confidence: number
+            isDuplicate?: boolean
+            duplicateReason?: string
+        }>,
+        aiMessage: string,
+        liffId: string
+    ): LineFlexBubble {
+        const liffUrl = `https://liff.line.me/${liffId}`
+
+        if (candidates.length === 0) {
+            return {
+                type: 'bubble',
+                body: {
+                    type: 'box',
+                    layout: 'vertical',
+                    contents: [
+                        {
+                            type: 'text',
+                            text: 'イベント候補',
+                            weight: 'bold',
+                            size: 'xl',
+                            color: '#1DB446',
+                        },
+                        {
+                            type: 'text',
+                            text: '候補が見つかりませんでした',
+                            size: 'sm',
+                            color: '#666666',
+                            wrap: true,
+                            margin: 'md',
+                        },
+                    ],
+                },
+                footer: {
+                    type: 'box',
+                    layout: 'vertical',
+                    contents: [
+                        {
+                            type: 'button',
+                            action: {
+                                type: 'uri',
+                                label: 'カレンダーを見る',
+                                uri: liffUrl,
+                            },
+                            style: 'primary',
+                            color: '#1DB446',
+                        },
+                    ],
+                },
+            }
+        }
+
+        const candidateItems = candidates.slice(0, 5).map((candidate) => {
+            const startDate = new Date(candidate.startDatetime)
+            const dateStr = startDate.toLocaleDateString('ja-JP', {
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+            })
+
+            const contents: Array<{
+                type: 'text'
+                text: string
+                weight?: 'bold'
+                size?: 'sm' | 'xs' | 'xxs'
+                color?: string
+                margin?: 'xs' | 'sm' | 'md'
+                wrap?: boolean
+            }> = [
+                {
+                    type: 'text',
+                    text: candidate.title,
+                    weight: 'bold',
+                    size: 'sm',
+                    wrap: true,
+                },
+                {
+                    type: 'text',
+                    text: dateStr,
+                    size: 'xs',
+                    color: '#999999',
+                    margin: 'xs',
+                },
+            ]
+
+            if (candidate.isDuplicate) {
+                contents.push({
+                    type: 'text',
+                    text: `⚠️ ${candidate.duplicateReason || '重複の可能性'}`,
+                    size: 'xxs',
+                    color: '#FF6B6B',
+                    margin: 'xs',
+                    wrap: true,
+                })
+            }
+
+            return {
+                type: 'box' as const,
+                layout: 'vertical' as const,
+                contents,
+                margin: 'md' as const,
+                paddingAll: '8px',
+                backgroundColor: candidate.color
+                    ? `${candidate.color}15`
+                    : '#F5F5F5',
+                cornerRadius: '8px',
+            }
+        })
+
+        return {
+            type: 'bubble',
+            body: {
+                type: 'box',
+                layout: 'vertical',
+                contents: [
+                    {
+                        type: 'text',
+                        text: aiMessage || 'イベント候補が見つかりました',
+                        weight: 'bold',
+                        size: 'lg',
+                        color: '#1DB446',
+                        wrap: true,
+                    },
+                    {
+                        type: 'text',
+                        text: `${candidates.length}件の候補`,
+                        size: 'sm',
+                        color: '#666666',
+                        margin: 'sm',
+                    },
+                    ...candidateItems,
+                ],
+            },
+            footer: {
+                type: 'box',
+                layout: 'vertical',
+                contents: [
+                    {
+                        type: 'button',
+                        action: {
+                            type: 'uri',
+                            label: 'アプリで詳細を見る',
+                            uri: liffUrl,
+                        },
+                        style: 'primary',
+                        color: '#1DB446',
+                    },
+                ],
+            },
+        }
+    }
 }

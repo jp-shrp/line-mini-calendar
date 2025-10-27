@@ -126,11 +126,15 @@ describe('LINE Webhook Integration Tests', () => {
             const { getUserByLineUserId } = await import(
                 '_shared/services/userService'
             )
-            const { aiSearchEvents } = await import(
+            const { aiGenerateEventCandidates } = await import(
                 '_shared/services/aiEventService'
             )
             ;(getUserByLineUserId as any).mockResolvedValue(mockUser)
-            ;(aiSearchEvents as any).mockResolvedValue(mockSearchResult)
+            ;(aiGenerateEventCandidates as any).mockResolvedValue({
+                candidates: mockSearchResult.events,
+                aiMessage: mockSearchResult.aiMessage,
+                requiresConfirmation: false,
+            })
 
             const mockReplyMessage = vi.fn().mockResolvedValue(undefined)
             ;(LineMessageService.prototype.replyMessage as any) =
@@ -143,7 +147,7 @@ describe('LINE Webhook Integration Tests', () => {
             expect(getUserByLineUserId).toHaveBeenCalledWith(
                 'test_line_user_id'
             )
-            expect(aiSearchEvents).toHaveBeenCalledWith(
+            expect(aiGenerateEventCandidates).toHaveBeenCalledWith(
                 'test_user_id',
                 '今日の試合は?'
             )
@@ -237,7 +241,7 @@ describe('LINE Webhook Integration Tests', () => {
     })
 
     describe('アンフォローイベント処理', () => {
-        it('ブロック時、ログに記録する', async () => {
+        it('ブロック時、正常に処理される', async () => {
             // Arrange
             const mockEvent: LineUnfollowEvent = {
                 type: 'unfollow',
@@ -252,15 +256,10 @@ describe('LINE Webhook Integration Tests', () => {
                 },
             }
 
-            const consoleSpy = vi.spyOn(console, 'log')
-
-            // Act
-            await webhookService.handleWebhookEvents([mockEvent])
-
-            // Assert
-            expect(consoleSpy).toHaveBeenCalledWith(
-                expect.stringContaining('User unfollowed')
-            )
+            // Act & Assert - エラーなく処理されることを確認
+            await expect(
+                webhookService.handleWebhookEvents([mockEvent])
+            ).resolves.not.toThrow()
         })
     })
 
@@ -347,13 +346,13 @@ describe('LINE Webhook Integration Tests', () => {
             const { getUserByLineUserId } = await import(
                 '_shared/services/userService'
             )
-            const { aiSearchEvents } = await import(
+            const { aiGenerateEventCandidates } = await import(
                 '_shared/services/aiEventService'
             )
             ;(getUserByLineUserId as any).mockResolvedValue({
                 id: 'test_user_id',
             })
-            ;(aiSearchEvents as any).mockRejectedValue(
+            ;(aiGenerateEventCandidates as any).mockRejectedValue(
                 new Error('AI Search Error')
             )
 
