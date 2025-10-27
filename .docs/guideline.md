@@ -1336,18 +1336,20 @@ return new SuccessResponse({
 
 - ✅ **必須**: `_shared`ディレクトリに新しいファイルを追加した場合は、必ず以下のファイルを更新する
 
-1. **`supabase/functions/import_map.json`** - Supabase Functions内での import パス解決用
-2. **`deno.json`** - プロジェクトルートでの Deno 実行時の import パス解決用
+**重要**: Supabaseのバージョンアップにより、`supabase/functions/import_map.json`は廃止され、`supabase/functions/deno.json`に設定が移行されました。
+
+1. **`supabase/functions/deno.json`** - Supabase Functions内での import パス解決用
+2. **`deno.json`** (プロジェクトルート) - プロジェクトルートでの Deno 実行時の import パス解決用
 
 ```json
-// supabase/functions/import_map.json
+// supabase/functions/deno.json
 {
     "imports": {
         "_shared/validations/newValidation": "./_shared/validations/newValidation.ts"
     }
 }
 
-// deno.json
+// deno.json (プロジェクトルート)
 {
     "imports": {
         "_shared/validations/newValidation": "./supabase/functions/_shared/validations/newValidation.ts"

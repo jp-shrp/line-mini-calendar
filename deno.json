@@ -43,7 +43,11 @@
         "_shared/types/ai-api-types": "./supabase/functions/_shared/types/ai-api-types.ts",
         "_shared/services/geminiService": "./supabase/functions/_shared/services/geminiService.ts",
         "_shared/services/aiEventService": "./supabase/functions/_shared/services/aiEventService.ts",
+        "_shared/services/lineMessageService": "./supabase/functions/_shared/services/lineMessageService.ts",
+        "_shared/services/lineWebhookService": "./supabase/functions/_shared/services/lineWebhookService.ts",
         "_shared/clientAdmin": "./supabase/functions/_shared/clientAdmin.ts",
-        "_shared/utils/date-utils": "./supabase/functions/_shared/utils/date-utils.ts"
+        "_shared/utils/date-utils": "./supabase/functions/_shared/utils/date-utils.ts",
+        "_shared/utils/line-signature": "./supabase/functions/_shared/utils/line-signature.ts",
+        "_shared/types/line-api-types": "./supabase/functions/_shared/types/line-api-types.ts"
     }
 }

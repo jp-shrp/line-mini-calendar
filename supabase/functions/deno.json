@@ -41,8 +41,12 @@
         "_shared/types/ai-api-types": "./_shared/types/ai-api-types.ts",
         "_shared/services/geminiService": "./_shared/services/geminiService.ts",
         "_shared/services/aiEventService": "./_shared/services/aiEventService.ts",
+        "_shared/services/lineMessageService": "./_shared/services/lineMessageService.ts",
+        "_shared/services/lineWebhookService": "./_shared/services/lineWebhookService.ts",
         "_shared/clientAdmin": "./_shared/clientAdmin.ts",
-        "_shared/utils/date-utils": "./_shared/utils/date-utils.ts"
+        "_shared/utils/date-utils": "./_shared/utils/date-utils.ts",
+        "_shared/utils/line-signature": "./_shared/utils/line-signature.ts",
+        "_shared/types/line-api-types": "./_shared/types/line-api-types.ts"
     },
     "compilerOptions": {
         "lib": ["deno.window"],
