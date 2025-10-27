@@ -1416,22 +1416,253 @@ return new SuccessResponse({
 - ✅ **必須**: 機密データは暗号化して保存
 - ✅ **必須**: アクセス権限を適切に設定
 
-### 15.3. マイグレーション戦略
+### 15.3. 新規スキーマ作成時の完全ガイド
 
-#### 15.3.1. 開発環境
+#### 15.3.1. 新規スキーマ作成の正しい手順（重要）
+
+新規スキーマを定義した際に`yarn make:migration`や`yarn make:migration:custom`でマイグレーションが作成されないことが多々あります。**以下の手順を必ず守ってください。**
+
+**ステップ1: スキーマファイルの作成**
+
+```typescript
+// supabase/functions/_shared/schemas/newTable.ts
+import { type InferInsertModel, type InferSelectModel } from 'drizzle-orm'
+import { pgTable, uuid, varchar, timestamp } from 'drizzle-orm/pg-core'
+
+/**
+ * 新しいテーブルのスキーマ定義
+ */
+export const newTable = pgTable('new_table', {
+    id: uuid('id').primaryKey().defaultRandom(),
+    name: varchar('name', { length: 100 }).notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+})
+
+// ✅ 必須: 型定義のエクスポート
+export type SelectNewTable = InferSelectModel<typeof newTable>
+export type InsertNewTable = InferInsertModel<typeof newTable>
+export type UpdateNewTable = Partial<InsertNewTable>
+```
+
+**ステップ2: index.tsへの追加（最重要）**
+
+```typescript
+// supabase/functions/_shared/schemas/index.ts
+export * from '_shared/schemas/users'
+export * from '_shared/schemas/events'
+// ✅ 必須: 新規スキーマを追加
+export * from '_shared/schemas/newTable' // ← これを忘れずに追加！
+```
+
+**⚠️ 注意: この手順を忘れると、drizzle-kitがスキーマを認識せず、マイグレーションが生成されません！**
+
+**ステップ3: マイグレーション生成前のチェック**
+
+```bash
+# 1. TypeScriptの型チェック（構文エラーがないか確認）
+yarn type-check
+
+# 2. Denoの型チェック（Supabase Functions内の構文チェック）
+yarn deno:type-check
+```
+
+**ステップ4: マイグレーション生成**
+
+```bash
+# 標準マイグレーション生成（推奨）
+yarn make:migration create_new_table
+
+# カスタムマイグレーション生成（複雑な変更の場合）
+yarn make:migration:custom create_new_table
+```
+
+**ステップ5: 生成されたマイグレーションファイルの確認**
+
+```bash
+# 生成されたSQLファイルを確認
+cat db/migrations/YYYYMMDDHHMMSS_create_new_table.sql
+```
+
+**ステップ6: マイグレーション適用**
+
+```bash
+# ローカル環境に適用
+yarn db:migrate
+```
+
+#### 15.3.2. マイグレーションが生成されない場合のトラブルシューティング
+
+マイグレーションが生成されない場合、以下のチェックリストを**順番に**確認してください：
+
+##### ✅ チェックリスト1: スキーマファイルのエクスポート確認
+
+```bash
+# index.tsに新規スキーマが追加されているか確認
+cat supabase/functions/_shared/schemas/index.ts
+```
+
+**確認事項:**
+
+- ✅ 新規スキーマファイルが`export * from '_shared/schemas/ファイル名'`で追加されているか
+- ✅ パスが正しいか（`_shared/schemas/`で始まる）
+- ✅ ファイル名の拡張子（.ts）を省略しているか
+
+##### ✅ チェックリスト2: スキーマファイルの構文確認
+
+```bash
+# TypeScript型チェック
+yarn type-check
+
+# Deno型チェック
+yarn deno:type-check
+```
+
+**確認事項:**
+
+- ✅ `export const テーブル名 = pgTable(...)` がエクスポートされているか
+- ✅ インポート文が正しいか（`drizzle-orm`、`drizzle-orm/pg-core`）
+- ✅ 型定義（`SelectXXX`, `InsertXXX`）がエクスポートされているか
+
+##### ✅ チェックリスト3: drizzle.config.tsの設定確認
+
+```bash
+# drizzle.config.tsの内容確認
+cat db/drizzle/drizzle.config.ts
+```
+
+**確認事項:**
+
+- ✅ `schema: './supabase/functions/_shared/schemas/*'` となっているか
+- ✅ `out: './db/migrations'` が正しいか
+
+##### ✅ チェックリスト4: 環境変数の確認
+
+```bash
+# .envファイルにDB_URLが設定されているか確認
+cat .env | grep DB_URL
+```
+
+**確認事項:**
+
+- ✅ `DB_URL`が設定されているか
+- ✅ データベース接続文字列が正しいか
+
+##### ✅ チェックリスト5: キャッシュクリア＆再生成
+
+```bash
+# node_modulesとキャッシュをクリア
+rm -rf node_modules/.cache
+rm -rf .next
+
+# マイグレーション再生成
+yarn make:migration create_new_table
+```
+
+##### ✅ チェックリスト6: drizzle-kitのバージョン確認
+
+```bash
+# drizzle-kitのバージョン確認
+npx drizzle-kit --version
+
+# 最新版へのアップデート
+yarn add -D drizzle-kit@latest
+```
+
+#### 15.3.3. よくある失敗パターンと解決方法
+
+**失敗パターン1: index.tsに追加し忘れ**
+
+```typescript
+// ❌ 間違い: index.tsに追加していない
+// supabase/functions/_shared/schemas/newTable.ts
+export const newTable = pgTable('new_table', { ... })
+
+// supabase/functions/_shared/schemas/index.ts
+export * from '_shared/schemas/users'
+export * from '_shared/schemas/events'
+// newTableの追加を忘れている！
+```
+
+**解決方法:**
+
+```typescript
+// ✅ 正しい: index.tsに必ず追加
+// supabase/functions/_shared/schemas/index.ts
+export * from '_shared/schemas/users'
+export * from '_shared/schemas/events'
+export * from '_shared/schemas/newTable' // 追加！
+```
+
+**失敗パターン2: テーブル定義をエクスポートしていない**
+
+```typescript
+// ❌ 間違い: constがエクスポートされていない
+const newTable = pgTable('new_table', { ... })  // exportが無い
+```
+
+**解決方法:**
+
+```typescript
+// ✅ 正しい: exportを付ける
+export const newTable = pgTable('new_table', { ... })
+```
+
+**失敗パターン3: 相対パスの誤り**
+
+```typescript
+// ❌ 間違い: 相対パスを使用
+import { users } from '../users'
+import { users } from './users'
+
+// ✅ 正しい: _shared/からの絶対パス
+import { users } from '_shared/schemas/users'
+```
+
+**失敗パターン4: 外部キーの参照エラー**
+
+```typescript
+// ❌ 間違い: 参照先のテーブルをインポートしていない
+export const newTable = pgTable('new_table', {
+    userId: uuid('user_id').references(() => users.id), // usersが未定義
+})
+
+// ✅ 正しい: 必要なテーブルをインポート
+import { users } from '_shared/schemas/users'
+export const newTable = pgTable('new_table', {
+    userId: uuid('user_id').references(() => users.id),
+})
+```
+
+#### 15.3.4. マイグレーション生成のデバッグコマンド
+
+```bash
+# drizzle-kitの詳細ログを出力
+npx drizzle-kit generate --config=./db/drizzle/drizzle.config.ts --name test_migration --verbose
+
+# データベースの現在の状態を確認
+npx drizzle-kit introspect --config=./db/drizzle/drizzle.config.ts
+
+# drizzle-kitのスキーマ認識状況を確認（スキーマファイルがロードされているか）
+npx drizzle-kit check --config=./db/drizzle/drizzle.config.ts
+```
+
+### 15.4. マイグレーション戦略
+
+#### 15.4.1. 開発環境
 
 ```bash
 # スキーマ変更後、マイグレーション生成
-npm run db:generate add_new_feature
+yarn make:migration add_new_feature
 
 # マイグレーション適用
-npm run db:migrate
+yarn db:migrate
 
 # データリセット（開発環境のみ）
-npm run db:reset
+yarn db:reset
 ```
 
-#### 15.3.2. 本番環境
+#### 15.4.2. 本番環境
 
 **事前準備（必須）:**
 
@@ -1449,10 +1680,10 @@ cat ./migrations/XXXX_add_new_feature.sql
 
 ```bash
 # マイグレーション適用
-npm run db:migrate
+yarn db:migrate
 ```
 
-#### 15.3.3. ベストプラクティス
+#### 15.4.3. ベストプラクティス
 
 1. **破壊的変更の回避**
     - DROP TABLE/COLUMNは極力避ける

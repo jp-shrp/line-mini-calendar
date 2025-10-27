@@ -15,6 +15,13 @@
             "when": 1760072853462,
             "tag": "20251010050733_create_auth_trigger",
             "breakpoints": true
+        },
+        {
+            "idx": 2,
+            "version": "7",
+            "when": 1761570403068,
+            "tag": "20251027130643_create_line_event_candidate_sessions",
+            "breakpoints": true
         }
     ]
 }

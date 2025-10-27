@@ -26,7 +26,7 @@
         "db:seed:st": "source .env.preview && APP_ENV=preview dotenv -e .env.preview -- npx tsx ",
         "deno:lint": "deno lint",
         "deno:lint:fix": "deno lint --fix",
-        "deno:type-check": "deno check supabase/functions/**/*.ts",
+        "deno:type-check": "find supabase/functions -path '*/node_modules' -prune -o -path '*/supabase/functions/_shared/__tests__' -prune -o -name '*.ts' -print | xargs deno check",
         "deno:check": "deno lint && deno check"
     },
     "dependencies": {

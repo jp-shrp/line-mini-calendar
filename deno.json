@@ -20,6 +20,7 @@
         "_shared/schemas/events": "./supabase/functions/_shared/schemas/events.ts",
         "_shared/schemas/reminders": "./supabase/functions/_shared/schemas/reminders.ts",
         "_shared/schemas/categories": "./supabase/functions/_shared/schemas/categories.ts",
+        "_shared/schemas/lineEventCandidateSessions": "./supabase/functions/_shared/schemas/lineEventCandidateSessions.ts",
         "_shared/validations": "./supabase/functions/_shared/validations/index.ts",
         "_shared/validations/usersValidation": "./supabase/functions/_shared/validations/usersValidation.ts",
         "_shared/validations/eventsValidation": "./supabase/functions/_shared/validations/eventsValidation.ts",
@@ -46,6 +47,7 @@
         "_shared/services/aiEventService": "./supabase/functions/_shared/services/aiEventService.ts",
         "_shared/services/lineMessageService": "./supabase/functions/_shared/services/lineMessageService.ts",
         "_shared/services/lineWebhookService": "./supabase/functions/_shared/services/lineWebhookService.ts",
+        "_shared/services/lineEventCandidateSessionService": "./supabase/functions/_shared/services/lineEventCandidateSessionService.ts",
         "_shared/clientAdmin": "./supabase/functions/_shared/clientAdmin.ts",
         "_shared/utils/date-utils": "./supabase/functions/_shared/utils/date-utils.ts",
         "_shared/utils/line-signature": "./supabase/functions/_shared/utils/line-signature.ts",
@@ -58,5 +60,6 @@
         "rules": {
             "tags": ["recommended"]
         }
-    }
+    },
+    "lock": false
 }
