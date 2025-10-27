@@ -77,10 +77,10 @@
         "postgres": "^3.4.7",
         "prettier": "^3.5.3",
         "prettier-plugin-tailwindcss": "^0.6.14",
+        "supabase": "2.51.0",
         "tailwindcss": "^4",
         "ts-jest": "^29.4.3",
         "ts-node": "^10.9.2",
-        "typescript": "^5",
-        "supabase": "2.51.0"
+        "typescript": "^5"
     }
 }
