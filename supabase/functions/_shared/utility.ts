@@ -1,8 +1,9 @@
-export const enumToPgEnum = (myEnum: any): [string, ...string[]] => {
-    return Object.values(myEnum).map((value: any) => `${value}`) as [
-        string,
-        ...string[],
-    ]
+export const enumToPgEnum = (
+    myEnum: Record<string, string | number>
+): [string, ...string[]] => {
+    return Object.values(myEnum).map(
+        (value: string | number) => `${value}`
+    ) as [string, ...string[]]
 }
 
 export type Nullable<T> = {

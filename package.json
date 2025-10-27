@@ -23,7 +23,11 @@
         "db:migrate:test": "APP_ENV=test npx drizzle-kit migrate --config=./db/drizzle/drizzle.config.ts",
         "db:drop": "npx drizzle-kit drop --config=./db/drizzle/drizzle.config.ts",
         "db:seed": "APP_ENV=local npx tsx ",
-        "db:seed:st": "source .env.preview && APP_ENV=preview dotenv -e .env.preview -- npx tsx "
+        "db:seed:st": "source .env.preview && APP_ENV=preview dotenv -e .env.preview -- npx tsx ",
+        "deno:lint": "deno lint",
+        "deno:lint:fix": "deno lint --fix",
+        "deno:type-check": "deno check",
+        "deno:check": "deno lint && deno check"
     },
     "dependencies": {
         "@hookform/resolvers": "^5.2.2",

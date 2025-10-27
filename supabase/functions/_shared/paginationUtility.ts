@@ -1,4 +1,5 @@
 import type { PaginationInfo } from '_shared/types/pagination-types'
+import type { Context } from 'hono'
 
 export type { PaginationInfo } from '_shared/types/pagination-types'
 
@@ -14,7 +15,7 @@ export function getPaginationInfo(pagination: Partial<PaginationInfo>) {
     }
 }
 
-export function getPaginationInfoFromRequest(c: any) {
+export function getPaginationInfoFromRequest(c: Context) {
     const limit = parseInt(c.req.query('limit') || '20', 10)
     const page = parseInt(c.req.query('page') || '1', 10)
     return getPaginationInfo({ limit, currentPage: page })

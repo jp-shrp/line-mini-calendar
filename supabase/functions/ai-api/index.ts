@@ -5,6 +5,7 @@ import {
     type Variables,
 } from '_shared/middlewares/middleware'
 import type { SelectUser } from '_shared/schemas/users'
+import type { SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import {
     aiGenerateEventCandidates,
     aiSearchEvents,
@@ -28,7 +29,7 @@ import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 // 型拡張
 export type AIVariables = Variables & {
     user: SelectUser
-    supabase: any
+    supabase: SupabaseClient
 }
 
 // API初期化

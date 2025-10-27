@@ -1,15 +1,10 @@
 // Hono Framework
-export { HTTPException } from 'https://jsr.io/@hono/hono/4.7.6/src/http-exception.ts'
-export { Hono } from 'https://jsr.io/@hono/hono/4.7.6/src/index.ts'
-export type {
-    Context,
-    Input,
-    MiddlewareHandler,
-    Next,
-} from 'https://jsr.io/@hono/hono/4.7.6/src/index.ts'
-export { cors } from 'https://jsr.io/@hono/hono/4.7.6/src/middleware/cors/index.ts'
-export { jwt } from 'https://jsr.io/@hono/hono/4.7.6/src/middleware/jwt/index.ts'
-export { type Env } from 'https://jsr.io/@hono/hono/4.7.6/src/types.ts'
+export { HTTPException } from 'hono/http-exception'
+export { Hono } from 'hono'
+export type { Context, Input, MiddlewareHandler, Next } from 'hono'
+export { cors } from 'hono/cors'
+export { jwt } from 'hono/jwt'
+export { type Env } from 'hono'
 
 // Drizzle ORM
 export {

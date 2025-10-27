@@ -90,7 +90,11 @@
       "mcp__serena__list_memories",
       "WebFetch(domain:supabase.com)",
       "WebFetch(domain:developers.line.biz)",
-      "Bash(supabase functions list:*)"
+      "Bash(supabase functions list:*)",
+      "Bash(git stash:*)",
+      "Bash(yarn deno:type-check:*)",
+      "Bash(yarn deno:lint:*)",
+      "Bash(deno cache:*)"
     ],
     "deny": [],
     "ask": []
