@@ -44,7 +44,10 @@ async function buildSearchConditions(
                     ilike(events.description, `%${keyword}%`)
                 )
             )
-            .filter((condition): condition is SQL<unknown> => condition !== undefined)
+            .filter(
+                (condition): condition is SQL<unknown> =>
+                    condition !== undefined
+            )
         // 全ての必須キーワードがマッチする必要がある（AND結合）
         searchConditions.push(...mandatoryConditions)
     }

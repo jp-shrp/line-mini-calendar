@@ -260,7 +260,7 @@ Important notes:
 1. Use Google search to retrieve actual event information
 2. Prioritize the latest official information for sports matches, streaming schedules, etc.
 3. If date/time is not found, include a message asking the user for confirmation
-4. If there are multiple candidates, present up to 5 items
+4. If there are multiple candidates, present up to 15 items
 5. Display date/time in JST (Japan Standard Time)
 
 Information source priority:
