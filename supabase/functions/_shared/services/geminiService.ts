@@ -3,6 +3,8 @@
  * Google Gemini APIを使用してAI機能を提供
  */
 
+import type { KeywordExtractionResponse } from '_shared/types/search-types'
+
 const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY')
 const GEMINI_MODEL = 'gemini-2.0-flash-exp' // 最新の安定版モデルを使用
 const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`
@@ -238,5 +240,69 @@ export async function generateJSONWithWebSearch<T>(
     } catch (error) {
         console.error('Failed to parse Gemini response as JSON:', text)
         throw new Error(`Failed to parse AI response: ${error}`)
+    }
+}
+
+/**
+ * 検索クエリからキーワードを抽出し、重要度をスコアリング
+ *
+ * @param query - ユーザーの検索クエリ
+ * @returns 抽出されたキーワードと重要度スコア
+ */
+export async function extractSearchKeywords(
+    query: string
+): Promise<KeywordExtractionResponse> {
+    const systemInstruction = `
+あなたは検索クエリ解析の専門家です。
+ユーザーの検索クエリから重要なキーワードを抽出し、それぞれの重要度をスコアリングしてください。
+
+## 重要度スコアの基準
+- 0.9-1.0: 固有名詞（人名、企業名、地名など）で検索の核となるキーワード
+- 0.7-0.8: 重要な一般名詞（イベントの種類、カテゴリなど）
+- 0.5-0.6: 補助的なキーワード
+- 0.0-0.4: ストップワード（の、は、が、いつ、など）は除外
+
+## キーワードタイプ
+- person: 人名
+- organization: 組織名、企業名、チーム名
+- location: 地名、場所
+- event: イベント名、試合名
+- common: 一般名詞
+
+## 注意事項
+- 固有名詞は可能な限りフルネームで抽出してください（例: "大谷" → "大谷翔平"）
+- ストップワード（助詞、接続詞など）は除外してください
+- 検索意図を推定してください（例: スポーツイベント検索、人物情報検索など）
+
+## 出力形式
+必ず以下のJSON形式で回答してください：
+{
+  "keywords": [
+    { "term": "キーワード", "importance": 0.95, "type": "person" }
+  ],
+  "searchIntent": "検索意図の説明"
+}
+`
+
+    const prompt = `
+以下の検索クエリを解析してください：
+"${query}"
+
+重要なキーワードを抽出し、それぞれの重要度（0.0-1.0）とタイプを判定してください。
+`
+
+    try {
+        const result = await generateJSON<KeywordExtractionResponse>(
+            prompt,
+            systemInstruction
+        )
+
+        // 重要度でソート（降順）
+        result.keywords.sort((a, b) => b.importance - a.importance)
+
+        return result
+    } catch (error) {
+        console.error('Failed to extract keywords from query:', error)
+        throw error
     }
 }

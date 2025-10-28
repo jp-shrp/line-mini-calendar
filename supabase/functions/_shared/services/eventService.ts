@@ -3,8 +3,9 @@ import type { UpdateEvent } from '_shared/schemas/events'
 import { events } from '_shared/schemas/events'
 import type { CreateEventInput } from '_shared/types/events-api-types'
 import type { PaginationInfo } from '_shared/types/pagination-types'
+import { processSearchQuery } from '_shared/utils/search-utils'
 import { db } from 'db'
-import { and, eq, gte, ilike, lt, or } from 'imports'
+import { and, eq, gte, ilike, lt, or, type SQL } from 'imports'
 
 /**
  * イベント取得のクエリパラメータ
@@ -17,6 +18,53 @@ export interface GetEventsParams {
     searchQuery?: string
     pagination: PaginationInfo
 }
+
+/**
+ * 検索クエリから検索条件を構築する
+ *
+ * @param searchQuery - 検索クエリ
+ * @returns 検索条件の配列
+ */
+async function buildSearchConditions(
+    searchQuery: string
+): Promise<SQL<unknown>[]> {
+    // Gemini APIまたはフォールバックでキーワードを抽出
+    const { mandatoryKeywords, optionalKeywords } =
+        await processSearchQuery(searchQuery)
+
+    const searchConditions: SQL<unknown>[] = []
+
+    // 必須キーワード（AND条件）
+    // 各必須キーワードはtitleまたはdescriptionのいずれかに含まれている必要がある
+    if (mandatoryKeywords.length > 0) {
+        const mandatoryConditions = mandatoryKeywords
+            .map((keyword) =>
+                or(
+                    ilike(events.title, `%${keyword}%`),
+                    ilike(events.description, `%${keyword}%`)
+                )
+            )
+            .filter((condition): condition is SQL<unknown> => condition !== undefined)
+        // 全ての必須キーワードがマッチする必要がある（AND結合）
+        searchConditions.push(...mandatoryConditions)
+    }
+
+    // 任意キーワード（OR条件）
+    // 少なくとも1つの任意キーワードがマッチすればOK
+    if (optionalKeywords.length > 0) {
+        const optionalConditions = optionalKeywords.flatMap((keyword) => [
+            ilike(events.title, `%${keyword}%`),
+            ilike(events.description, `%${keyword}%`),
+        ])
+        // 任意キーワードは1つ以上マッチすればOK（OR結合）
+        if (optionalConditions.length > 0) {
+            searchConditions.push(or(...optionalConditions)!)
+        }
+    }
+
+    return searchConditions
+}
+
 /**
  * ユーザーのイベント一覧を取得する
  * @param params イベント取得パラメータ
@@ -49,34 +97,16 @@ export async function getEvents(params: GetEventsParams) {
         conditions.push(lt(events.startDatetime, requestEndDate))
     }
 
-    // OR検索条件の構築
-    const orConditions = []
-
     // カテゴリフィルタリング
     // 'other'の場合は検索条件に含めない（全てのカテゴリを対象とする）
     if (category && category !== 'other') {
-        orConditions.push(eq(events.category, category))
+        conditions.push(eq(events.category, category))
     }
 
-    // 全文検索フィルタリング（ILIKE演算子を使用した部分一致検索）
+    // 全文検索フィルタリング（Gemini API + フォールバック）
     if (searchQuery) {
-        // 検索クエリをスペースで分割してキーワード配列を作成
-        const keywords = searchQuery.trim().split(/\s+/)
-
-        // 各キーワードに対してILIKE検索条件を作成（部分一致検索）
-        // titleまたはdescriptionにキーワードが含まれている場合にマッチ
-        const searchConditions = keywords.flatMap((keyword) => [
-            ilike(events.title, `%${keyword}%`),
-            ilike(events.description, `%${keyword}%`),
-        ])
-
-        // 全てのキーワード検索条件をOR結合
-        orConditions.push(...searchConditions)
-    }
-
-    // OR条件がある場合は追加
-    if (orConditions.length > 0) {
-        conditions.push(or(...orConditions)!)
+        const searchConditions = await buildSearchConditions(searchQuery)
+        conditions.push(...searchConditions)
     }
 
     // イベント一覧取得

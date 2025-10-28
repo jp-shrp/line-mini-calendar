@@ -49,7 +49,9 @@
         "_shared/clientAdmin": "./_shared/clientAdmin.ts",
         "_shared/utils/date-utils": "./_shared/utils/date-utils.ts",
         "_shared/utils/line-signature": "./_shared/utils/line-signature.ts",
-        "_shared/types/line-api-types": "./_shared/types/line-api-types.ts"
+        "_shared/utils/search-utils": "./_shared/utils/search-utils.ts",
+        "_shared/types/line-api-types": "./_shared/types/line-api-types.ts",
+        "_shared/types/search-types": "./_shared/types/search-types.ts"
     },
     "lint": {
         "include": ["supabase/functions/"],

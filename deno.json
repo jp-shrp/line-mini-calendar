@@ -51,7 +51,9 @@
         "_shared/clientAdmin": "./supabase/functions/_shared/clientAdmin.ts",
         "_shared/utils/date-utils": "./supabase/functions/_shared/utils/date-utils.ts",
         "_shared/utils/line-signature": "./supabase/functions/_shared/utils/line-signature.ts",
-        "_shared/types/line-api-types": "./supabase/functions/_shared/types/line-api-types.ts"
+        "_shared/utils/search-utils": "./supabase/functions/_shared/utils/search-utils.ts",
+        "_shared/types/line-api-types": "./supabase/functions/_shared/types/line-api-types.ts",
+        "_shared/types/search-types": "./supabase/functions/_shared/types/search-types.ts"
     },
     "lint": {
         "include": ["supabase/functions/"],
