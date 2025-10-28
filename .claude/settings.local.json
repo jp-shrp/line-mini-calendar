@@ -96,7 +96,8 @@
             "Bash(yarn deno:lint:*)",
             "Bash(deno cache:*)",
             "WebFetch(domain:dev.classmethod.jp)",
-            "Bash(ls:*)"
+            "Bash(ls:*)",
+            "Bash(yarn db:migrate:*)"
         ],
         "deny": [],
         "ask": []

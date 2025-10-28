@@ -4,7 +4,7 @@ import { events } from '_shared/schemas/events'
 import type { CreateEventInput } from '_shared/types/events-api-types'
 import type { PaginationInfo } from '_shared/types/pagination-types'
 import { db } from 'db'
-import { and, eq, gte, lt } from 'imports'
+import { and, eq, gte, ilike, lt, or } from 'imports'
 
 /**
  * イベント取得のクエリパラメータ
@@ -14,6 +14,7 @@ export interface GetEventsParams {
     startDate?: string
     endDate?: string
     category?: string
+    searchQuery?: string
     pagination: PaginationInfo
 }
 /**
@@ -22,10 +23,11 @@ export interface GetEventsParams {
  * @returns イベント一覧と総数
  */
 export async function getEvents(params: GetEventsParams) {
-    const { userId, startDate, endDate, category, pagination } = params
+    const { userId, startDate, endDate, category, searchQuery, pagination } =
+        params
     const { limit, offset } = pagination
 
-    // WHERE条件の構築
+    // WHERE条件の構築（AND条件）
     const conditions = [eq(events.userId, userId), eq(events.isDeleted, false)]
 
     // 日付フィルタリング
@@ -47,8 +49,34 @@ export async function getEvents(params: GetEventsParams) {
         conditions.push(lt(events.startDatetime, requestEndDate))
     }
 
-    if (category) {
-        conditions.push(eq(events.category, category))
+    // OR検索条件の構築
+    const orConditions = []
+
+    // カテゴリフィルタリング
+    // 'other'の場合は検索条件に含めない（全てのカテゴリを対象とする）
+    if (category && category !== 'other') {
+        orConditions.push(eq(events.category, category))
+    }
+
+    // 全文検索フィルタリング（ILIKE演算子を使用した部分一致検索）
+    if (searchQuery) {
+        // 検索クエリをスペースで分割してキーワード配列を作成
+        const keywords = searchQuery.trim().split(/\s+/)
+
+        // 各キーワードに対してILIKE検索条件を作成（部分一致検索）
+        // titleまたはdescriptionにキーワードが含まれている場合にマッチ
+        const searchConditions = keywords.flatMap((keyword) => [
+            ilike(events.title, `%${keyword}%`),
+            ilike(events.description, `%${keyword}%`),
+        ])
+
+        // 全てのキーワード検索条件をOR結合
+        orConditions.push(...searchConditions)
+    }
+
+    // OR条件がある場合は追加
+    if (orConditions.length > 0) {
+        conditions.push(or(...orConditions)!)
     }
 
     // イベント一覧取得
