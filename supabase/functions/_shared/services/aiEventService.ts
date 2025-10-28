@@ -4,7 +4,7 @@
  */
 
 import { getPaginationInfo } from '_shared/paginationUtility'
-import { getEvents } from '_shared/services/eventService'
+import { getEvents, type GetEventsParams } from '_shared/services/eventService'
 import {
     generateJSON,
     generateJSONWithWebSearch,
@@ -176,30 +176,27 @@ Respond in the following JSON format:
     )
 
     // Step 2: 抽出されたパラメータでDBを検索
-    const { events } = await getEvents({
+    // キーワードがある場合は結合して全文検索クエリとして使用
+    const searchQuery =
+        aiParams.keywords && aiParams.keywords.length > 0
+            ? aiParams.keywords.join(' ')
+            : undefined
+
+    const params: GetEventsParams = {
         userId,
         startDate: aiParams.startDate,
         endDate: aiParams.endDate,
         category: aiParams.category,
+        searchQuery,
         pagination: getPaginationInfo({ currentPage: 1, limit: 50 }),
-    })
-
-    // Step 3: キーワードフィルタリング（オプション）
-    let filteredEvents = events
-    if (aiParams.keywords && aiParams.keywords.length > 0) {
-        filteredEvents = events.filter((event) => {
-            const searchText =
-                `${event.title} ${event.description || ''}`.toLowerCase()
-            return aiParams.keywords!.some((keyword) =>
-                searchText.includes(keyword.toLowerCase())
-            )
-        })
     }
 
-    // Step 4: レスポンス生成
+    const { events, total } = await getEvents(params)
+
+    // Step 3: レスポンス生成
     return {
-        events: filteredEvents,
-        total: filteredEvents.length,
+        events,
+        total,
         aiMessage: aiParams.userFriendlyMessage,
         searchParams: {
             startDate: aiParams.startDate,

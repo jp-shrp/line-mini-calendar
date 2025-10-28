@@ -23,6 +23,7 @@ export {
     lte,
     not,
     or,
+    sql,
     type InferInsertModel,
     type InferModel,
     type InferSelectModel,
