@@ -26,6 +26,65 @@ interface SearchParams {
 }
 
 /**
+ * AI関連ワード生成: イベント情報から検索用の関連キーワードを生成
+ * @param title イベントのタイトル
+ * @param description イベントの説明
+ * @param category イベントのカテゴリ
+ * @returns 関連キーワードの文字列（カンマ区切り）
+ */
+export async function generateSearchKeywords(
+    title: string,
+    description: string | null | undefined,
+    category: string
+): Promise<string | null> {
+    const systemInstruction = `
+あなたは検索キーワード生成のスペシャリストです。
+イベント情報から、ユーザーが検索しそうな関連キーワードを生成してください。
+
+生成ルール:
+1. タイトルや説明から主要な固有名詞を抽出
+2. 略称、別名、関連する呼び名を追加
+3. カタカナ、ひらがな、英語表記のバリエーションを含める
+4. 一般的な検索クエリを想定する
+5. 最大10個のキーワードに絞る
+
+例:
+- タイトル: "ONE PIECE 113"
+  説明: "尾田 栄一郎"
+  → "ワンピース,ワンピ,ONE PIECE,ONEPIECE,漫画,コミック,尾田栄一郎,尾田,単行本,発売日"
+
+- タイトル: "プレミアリーグ トッテナム vs アーセナル"
+  説明: null
+  → "プレミアリーグ,Premier League,トッテナム,スパーズ,Tottenham,アーセナル,Gunners,Arsenal,サッカー,北ロンドンダービー"
+
+レスポンスはカンマ区切りのキーワード文字列のみを返してください（JSON不要）。
+`
+
+    const prompt = `
+タイトル: "${title}"
+説明: "${description || 'なし'}"
+カテゴリ: "${category}"
+
+この情報から検索用の関連キーワードを生成してください。
+`
+
+    try {
+        // Gemini APIでキーワード生成（JSONではなくテキストで返す）
+        const response = await generateJSON<{ keywords: string }>(
+            prompt,
+            systemInstruction +
+                '\n\nレスポンス形式: {"keywords": "キーワード1,キーワード2,..."}'
+        )
+
+        return response.keywords || null
+    } catch (error) {
+        console.error('Failed to generate search keywords:', error)
+        // エラー時はnullを返す（既存機能に影響を与えない）
+        return null
+    }
+}
+
+/**
  * AI検索: 自然言語クエリからイベントを検索
  */
 /**
@@ -142,6 +201,17 @@ You are an AI assistant for a calendar app.
 Parse the user's natural language query and extract event search parameters.
 All response messages must be in Japanese.
 
+**CRITICAL: Keyword Extraction Rules**
+- Extract ONLY the subject/entity being searched for (e.g., "ワンピース", "トッテナム", "Netflix")
+- DO NOT include temporal query words like: "いつ", "何日", "発売日", "予定", "スケジュール", etc.
+- DO NOT include generic action words like: "ある", "見る", "知りたい", etc.
+- Focus on proper nouns, titles, and specific entities
+
+Examples:
+- Query: "ワンピースの発売日いつ？" → keywords: ["ワンピース"]
+- Query: "トッテナムの試合予定" → keywords: ["トッテナム", "試合"]
+- Query: "今日の予定は？" → keywords: [] (no specific entity)
+
 Supported categories:
 - Premier League (premier_league)
 - Serie A (serie_a)
@@ -159,7 +229,7 @@ Respond in the following JSON format:
   "startDate": "Start date in YYYY-MM-DD format (optional)",
   "endDate": "End date in YYYY-MM-DD format (optional)",
   "category": "Category ID (optional)",
-  "keywords": ["Array of search keywords"],
+  "keywords": ["Array of search keywords - ONLY entities, NOT temporal query words"],
   "userFriendlyMessage": "Response message to user in Japanese"
 }
 `
@@ -182,10 +252,21 @@ Respond in the following JSON format:
             ? aiParams.keywords.join(' ')
             : undefined
 
+    // デフォルトで今日以降のイベントを検索
+    // startDateが指定されていない場合は、今日の日付をセット
+    const todayStr = new Date().toISOString().split('T')[0]
+    const finalStartDate = aiParams.startDate || todayStr
+
+    // endDateの処理: startDateと同じか、それより前の場合はundefinedにして全ての未来イベントを対象にする
+    let finalEndDate = aiParams.endDate
+    if (finalEndDate && finalEndDate <= finalStartDate) {
+        finalEndDate = undefined
+    }
+
     const params: GetEventsParams = {
         userId,
-        startDate: aiParams.startDate,
-        endDate: aiParams.endDate,
+        startDate: finalStartDate,
+        endDate: finalEndDate,
         category: aiParams.category,
         searchQuery,
         pagination: getPaginationInfo({ currentPage: 1, limit: 50 }),
@@ -199,8 +280,8 @@ Respond in the following JSON format:
         total,
         aiMessage: aiParams.userFriendlyMessage,
         searchParams: {
-            startDate: aiParams.startDate,
-            endDate: aiParams.endDate,
+            startDate: finalStartDate,
+            endDate: finalEndDate,
             category: aiParams.category,
             keywords: aiParams.keywords,
         },

@@ -14,6 +14,7 @@ const fillable: (keyof SelectEvent)[] = [
     'iconUrl',
     'color',
     'isDeleted',
+    'searchKeywords',
     'createdAt',
     'updatedAt',
 ]
@@ -33,6 +34,7 @@ export class Event extends Model implements SelectEvent {
     iconUrl: string | null = null
     color: string | null = null
     isDeleted = false
+    searchKeywords: string | null = null
     createdAt = new Date()
     updatedAt = new Date()
 

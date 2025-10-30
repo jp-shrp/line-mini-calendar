@@ -97,7 +97,10 @@
             "Bash(deno cache:*)",
             "WebFetch(domain:dev.classmethod.jp)",
             "Bash(ls:*)",
-            "Bash(yarn db:migrate:*)"
+            "Bash(yarn db:migrate:*)",
+            "Bash(yarn make:migration:*)",
+            "Bash(yarn make:migration:custom:*)",
+            "Bash(PGPASSWORD=postgres psql:*)"
         ],
         "deny": [],
         "ask": []

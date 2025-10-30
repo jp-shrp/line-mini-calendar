@@ -30,6 +30,7 @@ export const events = pgTable('events', {
     endDatetime: timestamp('end_datetime').notNull(),
     color: varchar('color', { length: 7 }),
     isDeleted: boolean('is_deleted').notNull().default(false),
+    searchKeywords: text('search_keywords'),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
 })
