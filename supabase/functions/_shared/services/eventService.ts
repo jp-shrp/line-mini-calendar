@@ -34,29 +34,34 @@ async function buildSearchConditions(
 
     const searchConditions: SQL<unknown>[] = []
 
-    // 必須キーワード（AND条件）
-    // 各必須キーワードはtitleまたはdescriptionのいずれかに含まれている必要がある
+    // 必須キーワード(AND条件)
+    // 各必須キーワードはtitle、description、searchKeywordsのいずれかに含まれている必要がある
     if (mandatoryKeywords.length > 0) {
         const mandatoryConditions = mandatoryKeywords
             .map((keyword) =>
                 or(
                     ilike(events.title, `%${keyword}%`),
-                    ilike(events.description, `%${keyword}%`)
+                    ilike(events.description, `%${keyword}%`),
+                    ilike(events.searchKeywords, `%${keyword}%`)
                 )
             )
-            .filter((condition): condition is SQL<unknown> => condition !== undefined)
-        // 全ての必須キーワードがマッチする必要がある（AND結合）
+            .filter(
+                (condition): condition is SQL<unknown> =>
+                    condition !== undefined
+            )
+        // 全ての必須キーワードがマッチする必要がある(AND結合)
         searchConditions.push(...mandatoryConditions)
     }
 
-    // 任意キーワード（OR条件）
+    // 任意キーワード(OR条件)
     // 少なくとも1つの任意キーワードがマッチすればOK
     if (optionalKeywords.length > 0) {
         const optionalConditions = optionalKeywords.flatMap((keyword) => [
             ilike(events.title, `%${keyword}%`),
             ilike(events.description, `%${keyword}%`),
+            ilike(events.searchKeywords, `%${keyword}%`),
         ])
-        // 任意キーワードは1つ以上マッチすればOK（OR結合）
+        // 任意キーワードは1つ以上マッチすればOK(OR結合)
         if (optionalConditions.length > 0) {
             searchConditions.push(or(...optionalConditions)!)
         }
@@ -161,11 +166,28 @@ export async function getEventById(eventId: string, userId: string) {
  * @returns 作成されたイベント
  */
 export async function createEvent(userId: string, eventData: CreateEventInput) {
+    // AI検索用のキーワードを生成（generateSearchKeywordsをインポート）
+    let searchKeywords: string | null = null
+    try {
+        const { generateSearchKeywords } = await import(
+            '_shared/services/aiEventService'
+        )
+        searchKeywords = await generateSearchKeywords(
+            eventData.title,
+            eventData.description,
+            eventData.category || 'other'
+        )
+    } catch (error) {
+        console.error('Failed to generate search keywords:', error)
+        // エラー時はnullのまま（既存機能に影響を与えない）
+    }
+
     const [newEvent] = await db
         .insert(events)
         .values({
             ...eventData,
             userId,
+            searchKeywords,
         })
         .returning()
 

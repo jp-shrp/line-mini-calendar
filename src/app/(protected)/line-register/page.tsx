@@ -1,4 +1,5 @@
 import { Suspense } from 'react'
+import DebugInfo from '../../DebugInfo'
 import { LineRegisterClient } from './components/LineRegisterClient'
 
 /**
@@ -19,6 +20,7 @@ export default function LineRegisterPage() {
                 </div>
             }>
             <LineRegisterClient />
+            <DebugInfo />
         </Suspense>
     )
 }

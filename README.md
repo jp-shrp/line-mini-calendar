@@ -1,4 +1,4 @@
-## EIKO
+## Line Mini Calendar
 
 ### envの設定
 

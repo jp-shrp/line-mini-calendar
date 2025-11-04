@@ -1,0 +1,58 @@
+image: node:20
+
+pipelines:
+    branches:
+        # developブランチ: Preview環境へデプロイ
+        develop:
+            - step:
+                  name: Deploy to Vercel (Preview)
+                  caches:
+                      - node
+                  script:
+                      # Vercel CLIをインストール
+                      - npm install --global vercel@latest
+
+                      # Vercelプロジェクト情報を取得（Preview環境）
+                      - vercel pull --yes --environment=preview --token=$VERCEL_TOKEN
+
+                      # アプリケーションをビルド
+                      - vercel build --token=$VERCEL_TOKEN
+
+                      # ビルド成果物をデプロイ（Preview）
+                      - vercel deploy --prebuilt --token=$VERCEL_TOKEN
+
+        # mainブランチ: Production環境へデプロイ
+        main:
+            - step:
+                  name: Deploy to Vercel (Production)
+                  caches:
+                      - node
+                  script:
+                      # Vercel CLIをインストール
+                      - npm install --global vercel@latest
+
+                      # Vercelプロジェクト情報を取得（Production環境）
+                      - vercel pull --yes --environment=production --token=$VERCEL_TOKEN
+
+                      # アプリケーションをビルド（本番モード）
+                      - vercel build --prod --token=$VERCEL_TOKEN
+
+                      # ビルド成果物をデプロイ（Production）
+                      - vercel deploy --prebuilt --prod --token=$VERCEL_TOKEN
+
+    # プルリクエスト時: Preview Deploymentを作成
+    pull-requests:
+        '**':
+            - step:
+                  name: Deploy to Vercel (PR Preview)
+                  caches:
+                      - node
+                  script:
+                      - npm install --global vercel@latest
+                      - vercel pull --yes --environment=preview --token=$VERCEL_TOKEN
+                      - vercel build --token=$VERCEL_TOKEN
+                      - vercel deploy --prebuilt --token=$VERCEL_TOKEN
+
+definitions:
+    caches:
+        node: node_modules

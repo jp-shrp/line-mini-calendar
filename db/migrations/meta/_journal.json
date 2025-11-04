@@ -22,6 +22,13 @@
             "when": 1761570403068,
             "tag": "20251027130643_create_line_event_candidate_sessions",
             "breakpoints": true
+        },
+        {
+            "idx": 3,
+            "version": "7",
+            "when": 1761655230444,
+            "tag": "20251028124030_add_search_keywords_to_events",
+            "breakpoints": true
         }
     ]
 }
