@@ -1,5 +1,12 @@
 ---
-description: 'commit履歴からプルリクを作成してください'
+description: 'commit履歴からプルリクを作成してください /create-pr-to-commit {base branch}'
 ---
 
-現在のbranchのコミット履歴からプルリクを作成してください。
+$ARGUMENTS向けににプルリクを作成
+
+## Instructions
+
+1. **引数の解析**
+    - base branch: $ARGUMENTS の最初の単語
+
+現在のbranchのコミット履歴からbase branchに対してbbコマンドを使用してプルリクを作成してください。
