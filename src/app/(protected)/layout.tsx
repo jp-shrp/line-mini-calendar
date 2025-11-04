@@ -5,6 +5,7 @@
  */
 'use client'
 
+import { HamburgerMenu } from '@/src/components/HamburgerMenu'
 import { AuthGuard } from '@/src/contexts/AuthContext'
 import { ReactNode } from 'react'
 
@@ -13,5 +14,14 @@ interface ProtectedLayoutProps {
 }
 
 export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
-    return <AuthGuard>{children}</AuthGuard>
+    return (
+        <AuthGuard>
+            <div className="relative">
+                <div className="fixed top-0 z-50 w-full bg-gray-300">
+                    <HamburgerMenu />
+                </div>
+                <div className="mt-8">{children}</div>
+            </div>
+        </AuthGuard>
+    )
 }
